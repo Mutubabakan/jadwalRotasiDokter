@@ -114,13 +114,27 @@ export default function DokterTab() {
             </button>
 
             {editingId === doctor.id ? (
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="flex-1 bg-gray-50 border border-purple-200 rounded-lg text-sm text-gray-700 px-2 py-1"
-                autoFocus
-              />
+              <div className="flex-1 space-y-2">
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-gray-50 border border-purple-200 rounded-lg text-sm text-gray-700 px-2 py-1"
+                  autoFocus
+                />
+                <button
+                  onClick={() => openColorPicker(doctor.id)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50 border border-purple-200 w-full"
+                >
+                  <div
+                    className="w-5 h-5 rounded-full border border-white shadow-sm"
+                    style={{ backgroundColor: doctor.color }}
+                  />
+                  <span className="text-[10px] font-mono text-gray-600">{doctor.color.toUpperCase()}</span>
+                  <Palette size={12} className="ml-auto text-purple-500" />
+                  <span className="text-[10px] text-purple-600">Ubah Warna</span>
+                </button>
+              </div>
             ) : (
               <div className="flex-1">
                 <div className="text-sm font-bold" style={{ color: doctor.color }}>

@@ -109,18 +109,29 @@ export default function SettingTab() {
     });
   };
 
+  const [showResetScheduleConfirm, setShowResetScheduleConfirm] = useState(false);
+  const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
+
   const handleResetData = () => {
-    if (confirm('Reset semua data jadwal? Data dokter dan pengaturan tetap dipertahankan.')) {
-      localStorage.removeItem('puskesmas_schedule');
-      alert('Data jadwal berhasil direset.');
-    }
+    setShowResetScheduleConfirm(true);
+  };
+
+  const confirmResetSchedule = () => {
+    localStorage.removeItem('puskesmas_schedule');
+    setShowResetScheduleConfirm(false);
+    alert('Data jadwal berhasil direset. Halaman akan di-reload.');
+    window.location.reload();
   };
 
   const handleResetAll = () => {
-    if (confirm('Reset SEMUA data? Termasuk dokter, jadwal, dan pengaturan.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+    setShowResetAllConfirm(true);
+  };
+
+  const confirmResetAll = () => {
+    localStorage.clear();
+    setShowResetAllConfirm(false);
+    alert('Semua data berhasil direset. Halaman akan di-reload.');
+    window.location.reload();
   };
 
   return (
@@ -181,6 +192,9 @@ export default function SettingTab() {
             <Plus size={12} className="text-purple-600" />
           </button>
         </div>
+        <p className="text-[9px] text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-200">
+          ✓ Otomatis sinkron dengan tab jadwal
+        </p>
 
         {/* Year Selector */}
         <div className="flex items-center gap-2">
@@ -406,6 +420,58 @@ export default function SettingTab() {
               </button>
               <button
                 onClick={() => { setShowImportModal(false); setImportText(''); }}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Schedule Confirmation Modal */}
+      {showResetScheduleConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+          <div className="glass-card rounded-2xl p-4 w-full max-w-xs holo-border-gradient">
+            <h3 className="text-sm font-bold text-amber-700 mb-2">Reset Data Jadwal</h3>
+            <p className="text-xs text-gray-600 mb-4">
+              Hapus semua data jadwal? Data dokter dan pengaturan tetap dipertahankan.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmResetSchedule}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm"
+              >
+                Ya, Reset
+              </button>
+              <button
+                onClick={() => setShowResetScheduleConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset All Confirmation Modal */}
+      {showResetAllConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+          <div className="glass-card rounded-2xl p-4 w-full max-w-xs holo-border-gradient">
+            <h3 className="text-sm font-bold text-red-600 mb-2">Reset Semua Data</h3>
+            <p className="text-xs text-gray-600 mb-4">
+              Hapus SEMUA data? Termasuk dokter, jadwal, pengaturan, dan hari libur. Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmResetAll}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold shadow-sm"
+              >
+                Ya, Hapus Semua
+              </button>
+              <button
+                onClick={() => setShowResetAllConfirm(false)}
                 className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
               >
                 Batal
