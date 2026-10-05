@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Doctor } from '../utils/types';
 import { getDoctors, saveDoctors } from '../utils/storage';
-import { Plus, Edit2, Trash2, X, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Check, Palette } from 'lucide-react';
+import ColorPickerModal from './ColorPickerModal';
 
 export default function DokterTab() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -10,6 +11,9 @@ export default function DokterTab() {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newIsBackup, setNewIsBackup] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [colorPickerDoctorId, setColorPickerDoctorId] = useState<string | null>(null);
+  const [newDoctorColor, setNewDoctorColor] = useState('#1565c0');
 
   useEffect(() => {
     setDoctors(getDoctors());
@@ -33,11 +37,10 @@ export default function DokterTab() {
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    const colors = ['#00bcd4', '#e91e63', '#4caf50', '#ff9800', '#9c27b0', '#2196f3', '#ff5722', '#607d8b'];
     const newDoctor: Doctor = {
       id: newName.trim().toLowerCase().replace(/[^a-z]/g, '') + Date.now(),
       name: newName.trim(),
-      color: colors[doctors.length % colors.length],
+      color: newDoctorColor,
       isBackup: newIsBackup,
     };
     const updated = [...doctors, newDoctor];
@@ -46,6 +49,30 @@ export default function DokterTab() {
     setShowAdd(false);
     setNewName('');
     setNewIsBackup(false);
+    setNewDoctorColor('#1565c0');
+  };
+
+  const handleColorChange = (doctorId: string, newColor: string) => {
+    const updated = doctors.map(d => 
+      d.id === doctorId ? { ...d, color: newColor } : d
+    );
+    setDoctors(updated);
+    saveDoctors(updated);
+    setShowColorPicker(false);
+    setColorPickerDoctorId(null);
+  };
+
+  const openColorPicker = (doctorId: string) => {
+    setColorPickerDoctorId(doctorId);
+    setShowColorPicker(true);
+  };
+
+  const getSelectedColor = () => {
+    if (colorPickerDoctorId) {
+      const doctor = doctors.find(d => d.id === colorPickerDoctorId);
+      return doctor?.color || '#1565c0';
+    }
+    return '#1565c0';
   };
 
   return (
@@ -68,18 +95,23 @@ export default function DokterTab() {
             key={doctor.id}
             className="glass-card rounded-2xl p-3 flex items-center gap-3 holo-border-gradient"
           >
-            <div
-              className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center"
+            <button
+              onClick={() => openColorPicker(doctor.id)}
+              className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center relative group"
               style={{
                 backgroundColor: `${doctor.color}15`,
                 border: `2px solid ${doctor.color}`,
                 boxShadow: `0 0 8px ${doctor.color}25`,
               }}
+              title="Ubah warna"
             >
               <span className="text-xs font-bold" style={{ color: doctor.color }}>
                 {doctor.name.replace('dr. ', '').charAt(0)}
               </span>
-            </div>
+              <div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Palette size={12} className="text-white" />
+              </div>
+            </button>
 
             {editingId === doctor.id ? (
               <input
@@ -136,6 +168,26 @@ export default function DokterTab() {
               className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-purple-200 text-sm text-gray-700 mb-3"
               autoFocus
             />
+            
+            {/* Color Picker for New Doctor */}
+            <div className="mb-3">
+              <label className="text-xs text-gray-600 mb-1.5 block">Warna:</label>
+              <button
+                onClick={() => {
+                  setColorPickerDoctorId('new');
+                  setShowColorPicker(true);
+                }}
+                className="w-full flex items-center gap-2 p-2 rounded-xl bg-gray-50 border border-purple-200"
+              >
+                <div
+                  className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                  style={{ backgroundColor: newDoctorColor, boxShadow: `0 0 8px ${newDoctorColor}40` }}
+                />
+                <span className="text-xs font-mono text-gray-600">{newDoctorColor.toUpperCase()}</span>
+                <Palette size={14} className="ml-auto text-purple-500" />
+              </button>
+            </div>
+
             <label className="flex items-center gap-2 mb-4 p-2 rounded-lg bg-purple-50/50">
               <input
                 type="checkbox"
@@ -161,6 +213,26 @@ export default function DokterTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Color Picker Modal */}
+      {showColorPicker && (
+        <ColorPickerModal
+          currentColor={colorPickerDoctorId === 'new' ? newDoctorColor : getSelectedColor()}
+          onConfirm={(color) => {
+            if (colorPickerDoctorId === 'new') {
+              setNewDoctorColor(color);
+            } else if (colorPickerDoctorId) {
+              handleColorChange(colorPickerDoctorId, color);
+            }
+            setShowColorPicker(false);
+            setColorPickerDoctorId(null);
+          }}
+          onClose={() => {
+            setShowColorPicker(false);
+            setColorPickerDoctorId(null);
+          }}
+        />
       )}
     </div>
   );
