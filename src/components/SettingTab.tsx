@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { saveAs } from 'file-saver';
 import { AppSettings } from '../utils/types';
 import { getSettings, saveSettings, getHolidaysByYear, saveHolidaysByYear, exportAllData, importAllData } from '../utils/storage';
 import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
@@ -39,18 +40,9 @@ export default function SettingTab() {
 
   const handleExportData = () => {
     const data = exportAllData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
+    const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
+    const filename = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
+    saveAs(blob, filename);
   };
 
   const handleImportData = () => {
@@ -85,18 +77,10 @@ export default function SettingTab() {
     cloneData.isClone = true;
     cloneData.cloneDate = new Date().toISOString();
     
-    const blob = new Blob([JSON.stringify(cloneData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `clone-${(cloneName || settings.puskesmasName).replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
+    const blob = new Blob([JSON.stringify(cloneData, null, 2)], { type: 'application/json;charset=utf-8' });
+    const filename = `clone-${(cloneName || settings.puskesmasName).replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+    saveAs(blob, filename);
+    
     setShowCloneModal(false);
     setCloneName('');
   };
