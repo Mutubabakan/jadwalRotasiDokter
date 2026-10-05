@@ -18,9 +18,9 @@
 function doGet(e) {
   const action = e.parameter.action;
   
-  // Jika tidak ada action, tampilkan dashboard HTML
+  // Jika tidak ada action, tampilkan web app
   if (!action) {
-    return showDashboard();
+    return showWebApp();
   }
   
   try {
@@ -61,10 +61,10 @@ function doGet(e) {
 }
 
 /**
- * SHOW DASHBOARD
- * Tampilkan halaman HTML dashboard
+ * SHOW WEB APP
+ * Tampilkan aplikasi web lengkap (tab Jadwal, Dokter, Setting)
  */
-function showDashboard() {
+function showWebApp() {
   var scriptUrl = ScriptApp.getService().getUrl();
   var today = new Date().toLocaleDateString('id-ID');
   
