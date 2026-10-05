@@ -26,6 +26,30 @@ const standardColors = [
   '#689f38', // Light Green
 ];
 
+// Neon color palette
+const neonColors = [
+  '#FF00FF', // Neon Magenta
+  '#FF1493', // Neon Pink
+  '#FF69B4', // Hot Pink
+  '#00FFFF', // Neon Cyan
+  '#00FF00', // Neon Green
+  '#39FF14', // Neon Lime
+  '#ADFF2F', // Green Yellow
+  '#FFFF00', // Neon Yellow
+  '#FFD700', // Gold
+  '#FF6600', // Neon Orange
+  '#FF4500', // Orange Red
+  '#FF0000', // Neon Red
+  '#00BFFF', // Deep Sky Blue
+  '#0066FF', // Neon Blue
+  '#4169E1', // Royal Blue
+  '#9D00FF', // Neon Purple
+  '#BF00FF', // Electric Purple
+  '#FF006E', // Neon Rose
+  '#00FFCC', // Neon Turquoise
+  '#7FFF00', // Chartreuse
+];
+
 // Honeycomb colors (60 colors arranged in hexagonal pattern)
 const honeycombColors = [
   // Reds
@@ -70,7 +94,7 @@ const honeycombColors = [
 
 export default function ColorPickerModal({ currentColor, onConfirm, onClose }: ColorPickerModalProps) {
   const [selectedColor, setSelectedColor] = useState(currentColor);
-  const [mode, setMode] = useState<'standard' | 'custom'>('standard');
+  const [mode, setMode] = useState<'standard' | 'neon' | 'custom'>('standard');
   const [customColor, setCustomColor] = useState(currentColor);
 
   const handleStandardSelect = (color: string) => {
@@ -125,6 +149,14 @@ export default function ColorPickerModal({ currentColor, onConfirm, onClose }: C
             Standar
           </button>
           <button
+            onClick={() => setMode('neon')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              mode === 'neon' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500'
+            }`}
+          >
+            Neon
+          </button>
+          <button
             onClick={() => setMode('custom')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               mode === 'custom' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500'
@@ -150,6 +182,28 @@ export default function ColorPickerModal({ currentColor, onConfirm, onClose }: C
                 }}
               />
             ))}
+          </div>
+        )}
+
+        {/* Neon Palette */}
+        {mode === 'neon' && (
+          <div className="bg-gray-900 rounded-xl p-3 mb-3 border border-purple-300">
+            <div className="grid grid-cols-5 gap-2">
+              {neonColors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => handleStandardSelect(color)}
+                  className={`aspect-square rounded-xl border-2 transition-all active:scale-90 ${
+                    selectedColor === color ? 'border-white scale-110' : 'border-gray-700'
+                  }`}
+                  style={{
+                    backgroundColor: color,
+                    boxShadow: `0 0 15px ${color}, 0 0 25px ${color}80`,
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-[9px] text-purple-300 text-center mt-2">✨ Warna neon dengan efek glow</p>
           </div>
         )}
 
