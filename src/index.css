@@ -1,1 +1,122 @@
 @import "tailwindcss";
+
+@theme {
+  --color-holo-silver: #c0c0c0;
+  --color-holo-purple: #9b59b6;
+  --color-holo-pink: #e91e8c;
+  --color-holo-dark: #0a0a0f;
+  --color-holo-darker: #050508;
+  --color-holo-card: #1a1a2e;
+  --color-holo-border: #2a2a3e;
+  --color-neon-cyan: #00ffff;
+  --color-neon-magenta: #ff00ff;
+  --color-neon-green: #39ff14;
+  --color-neon-orange: #ff6600;
+  --color-neon-yellow: #ffff00;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9b59b6, #e91e8c);
+  border-radius: 4px;
+}
+
+/* Holographic shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.holo-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(192, 192, 192, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.holo-border {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.holo-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #9b59b6, #e91e8c, #c0c0c0, #9b59b6);
+  z-index: -1;
+  opacity: 0.5;
+}
+
+.neon-text {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+}
+
+.glass-card {
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+.drag-over {
+  background: rgba(155, 89, 182, 0.2) !important;
+  border-color: #e91e8c !important;
+  box-shadow: 0 0 15px rgba(233, 30, 140, 0.3);
+}
+
+.doctor-chip {
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  touch-action: none;
+}
+
+.doctor-chip:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+}
+
+.schedule-cell {
+  min-height: 36px;
+  transition: all 0.2s ease;
+}
+
+.schedule-cell:hover {
+  background: rgba(155, 89, 182, 0.1);
+}
+
+.holiday-row {
+  background: rgba(220, 20, 60, 0.15) !important;
+}
+
+/* Tab active indicator */
+.tab-active {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(233, 30, 140, 0.3));
+  border-bottom: 2px solid #e91e8c;
+}
+
+/* Month selector */
+.month-selector {
+  background: linear-gradient(135deg, #1a1a2e, #2a1a3e);
+  border: 1px solid rgba(155, 89, 182, 0.4);
+}
