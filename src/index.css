@@ -96,8 +96,9 @@
   transition: all 0.15s ease;
 }
 .schedule-cell.drop-target {
-  background: rgba(155, 89, 182, 0.15) !important;
-  box-shadow: inset 0 0 8px rgba(233, 30, 140, 0.2);
+  background: rgba(155, 89, 182, 0.25) !important;
+  box-shadow: inset 0 0 12px rgba(233, 30, 140, 0.4);
+  border-color: #9b59b6 !important;
 }
 
 /* Holiday row */

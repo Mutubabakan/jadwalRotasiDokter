@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Doctor, ScheduleEntry, KetEntry } from '../utils/types';
 import { getDoctors, getMonthSchedule, saveMonthSchedule, isHoliday, getHolidayName } from '../utils/storage';
 import { ChevronLeft, ChevronRight, Plus, X, Check } from 'lucide-react';
@@ -18,15 +18,6 @@ export default function JadwalTab() {
   const [selectedStatus, setSelectedStatus] = useState<'izin' | 'sakit' | 'tugas'>('izin');
   const [tugasLabel, setTugasLabel] = useState('');
   const [showCellMenu, setShowCellMenu] = useState<{ date: string; field: string } | null>(null);
-  
-  // Touch drag state
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const [dragDoctor, setDragDoctor] = useState<Doctor | null>(null);
-  const [dragSource, setDragSource] = useState<{ date: string; field: string } | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ date: string; field: string } | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -59,133 +50,6 @@ export default function JadwalTab() {
     saveMonthSchedule(year, month, newEntries);
   }, [year, month]);
 
-  // === DRAG & DROP (Touch + Mouse) ===
-  const startDrag = (doctor: Doctor, source?: { date: string; field: string }, e?: React.TouchEvent | React.MouseEvent) => {
-    setDragDoctor(doctor);
-    setIsDragging(true);
-    setDragSource(source || null);
-    
-    if (e && 'touches' in e) {
-      setDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-    } else if (e && 'clientX' in e) {
-      setDragPos({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  const handleTouchStart = (doctor: Doctor, source?: { date: string; field: string }) => (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
-    
-    // Long press to start drag
-    longPressTimerRef.current = setTimeout(() => {
-      startDrag(doctor, source, e);
-    }, 200);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) {
-      // Check if moved too much, cancel long press
-      if (touchStartRef.current && longPressTimerRef.current) {
-        const touch = e.touches[0];
-        const dx = Math.abs(touch.clientX - touchStartRef.current.x);
-        const dy = Math.abs(touch.clientY - touchStartRef.current.y);
-        if (dx > 10 || dy > 10) {
-          if (longPressTimerRef.current) {
-            clearTimeout(longPressTimerRef.current);
-            longPressTimerRef.current = null;
-          }
-        }
-      }
-      return;
-    }
-    
-    const touch = e.touches[0];
-    setDragPos({ x: touch.clientX, y: touch.clientY });
-    
-    // Find drop target
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (element) {
-      const cell = element.closest('[data-cell]');
-      if (cell) {
-        const date = cell.getAttribute('data-date');
-        const field = cell.getAttribute('data-field');
-        if (date && field) {
-          setDropTarget({ date, field });
-        }
-      }
-    } else {
-      setDropTarget(null);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    
-    if (isDragging && dropTarget && dragDoctor) {
-      if (dropTarget.field === 'ket') {
-        // Open status modal for adding doctor to Ket
-        setShowStatusModal({ date: dropTarget.date, doctorId: dragDoctor.id });
-        setSelectedStatus('izin');
-        setTugasLabel('');
-      } else {
-        placeDoctor(dropTarget.date, dropTarget.field, dragDoctor.id);
-      }
-    }
-    
-    setIsDragging(false);
-    setDragDoctor(null);
-    setDragSource(null);
-    setDropTarget(null);
-    touchStartRef.current = null;
-  };
-
-  // Mouse drag events
-  const handleMouseDown = (doctor: Doctor, source?: { date: string; field: string }) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    startDrag(doctor, source, e);
-    
-    const handleMouseMove = (ev: MouseEvent) => {
-      setDragPos({ x: ev.clientX, y: ev.clientY });
-      const element = document.elementFromPoint(ev.clientX, ev.clientY);
-      if (element) {
-        const cell = element.closest('[data-cell]');
-        if (cell) {
-          const date = cell.getAttribute('data-date');
-          const field = cell.getAttribute('data-field');
-          if (date && field) {
-            setDropTarget({ date, field });
-          }
-        }
-      } else {
-        setDropTarget(null);
-      }
-    };
-    
-    const handleMouseUp = () => {
-      if (dropTarget && dragDoctor) {
-        if (dropTarget.field === 'ket') {
-          setShowStatusModal({ date: dropTarget.date, doctorId: dragDoctor.id });
-          setSelectedStatus('izin');
-          setTugasLabel('');
-        } else {
-          placeDoctor(dropTarget.date, dropTarget.field, dragDoctor.id);
-        }
-      }
-      setIsDragging(false);
-      setDragDoctor(null);
-      setDragSource(null);
-      setDropTarget(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
   // === PLACEMENT LOGIC ===
   const placeDoctor = (date: string, field: string, doctorId: string) => {
     const newEntries = entries.map(e => {
@@ -197,7 +61,39 @@ export default function JadwalTab() {
     persistEntries(newEntries);
   };
 
-  // Tap-based placement (fallback)
+  // === HTML5 DRAG & DROP (Desktop) ===
+  const handleDragStart = (e: React.DragEvent, doctor: Doctor) => {
+    e.dataTransfer.setData('text/plain', doctor.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('drop-target');
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove('drop-target');
+  };
+
+  const handleDrop = (e: React.DragEvent, date: string, field: string) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drop-target');
+    
+    const doctorId = e.dataTransfer.getData('text/plain');
+    if (doctorId) {
+      if (field === 'ket') {
+        setShowStatusModal({ date, doctorId });
+        setSelectedStatus('izin');
+        setTugasLabel('');
+      } else {
+        placeDoctor(date, field, doctorId);
+      }
+    }
+  };
+
+  // === TAP-BASED PLACEMENT (Mobile fallback) ===
   const handleDoctorSelect = (doctor: Doctor) => {
     if (selectedDoctor?.id === doctor.id) {
       setSelectedDoctor(null);
@@ -207,8 +103,6 @@ export default function JadwalTab() {
   };
 
   const handleCellTap = (date: string, field: string) => {
-    if (isDragging) return;
-    
     const entry = entries.find(e => e.date === date);
     const currentValue = (entry as any)?.[field];
 
@@ -234,7 +128,6 @@ export default function JadwalTab() {
   };
 
   const handleKetTap = (date: string) => {
-    if (isDragging) return;
     setShowKetModal({ date });
   };
 
@@ -309,9 +202,9 @@ export default function JadwalTab() {
     if (!doctor) return '#333';
     const status = getDoctorStatus(date, doctorId);
     if (status) {
-      if (status.status === 'sakit') return '#e53935';
-      if (status.status === 'izin') return '#f9a825';
-      if (status.status === 'tugas') return '#43a047';
+      if (status.status === 'sakit') return '#c62828';
+      if (status.status === 'izin') return '#f57f17';
+      if (status.status === 'tugas') return '#2e7d32';
     }
     return doctor.color;
   };
@@ -323,9 +216,9 @@ export default function JadwalTab() {
     const status = getDoctorStatus(date, doctorId);
     if (!status) return null;
     const colors: Record<string, string> = {
-      sakit: 'bg-red-100 text-red-700 border-red-200',
-      izin: 'bg-amber-100 text-amber-700 border-amber-200',
-      tugas: 'bg-green-100 text-green-700 border-green-200',
+      sakit: 'bg-red-100 text-red-800 border-red-300',
+      izin: 'bg-amber-100 text-amber-800 border-amber-300',
+      tugas: 'bg-green-100 text-green-800 border-green-300',
     };
     const labels: Record<string, string> = {
       sakit: 'S',
@@ -339,72 +232,28 @@ export default function JadwalTab() {
     );
   };
 
-  const handleHtml5Drop = (date: string, field: string) => (e: React.DragEvent) => {
-    e.preventDefault();
-    const doctorId = e.dataTransfer.getData('text/plain');
-    if (doctorId) {
-      if (field === 'ket') {
-        setShowStatusModal({ date, doctorId });
-        setSelectedStatus('izin');
-        setTugasLabel('');
-      } else {
-        placeDoctor(date, field, doctorId);
-      }
-    }
-    setIsDragging(false);
-    setDragDoctor(null);
-  };
-
-  const handleHtml5DragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    const cell = e.currentTarget.closest('[data-cell]');
-    if (cell) {
-      const date = cell.getAttribute('data-date');
-      const field = cell.getAttribute('data-field');
-      if (date && field) {
-        setDropTarget({ date, field });
-      }
-    }
-  };
-
-  const handleHtml5DragLeave = () => {
-    setDropTarget(null);
-  };
-
   const renderDoctorCell = (date: string, field: string, doctorId?: string) => {
     const doctor = doctorId ? doctors.find(d => d.id === doctorId) : null;
-    const isTarget = dropTarget?.date === date && dropTarget?.field === field;
     
     return (
       <td
-        data-cell="true"
-        data-date={date}
-        data-field={field}
-        className={`schedule-cell border border-holo-border/60 px-0.5 py-1.5 text-center cursor-pointer relative ${
-          isTarget ? 'drop-target' : ''
-        } ${selectedDoctor && !doctorId ? 'bg-purple-50/50' : ''}`}
+        className="schedule-cell border border-purple-200/60 px-0.5 py-1.5 text-center cursor-pointer relative bg-white/60 hover:bg-purple-50/50 transition-colors"
         onClick={() => handleCellTap(date, field)}
-        onDragOver={handleHtml5DragOver}
-        onDragLeave={handleHtml5DragLeave}
-        onDrop={handleHtml5Drop(date, field)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, date, field)}
       >
         {doctor ? (
           <div
             className="flex flex-col items-center gap-0.5"
             draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('text/plain', doctor.id);
-              startDrag(doctor, { date, field });
-            }}
-            onDragEnd={() => {
-              setIsDragging(false);
-              setDragDoctor(null);
-            }}
+            onDragStart={(e) => handleDragStart(e, doctor)}
           >
             <span
-              className="font-bold text-[10px] leading-tight"
+              className="font-bold text-[10px] leading-tight px-1 py-0.5 rounded"
               style={{
                 color: getDoctorDisplayColor(doctorId!, date),
+                backgroundColor: `${getDoctorDisplayColor(doctorId!, date)}15`,
               }}
             >
               {doctor.name.replace('dr. ', '')}
@@ -412,20 +261,14 @@ export default function JadwalTab() {
             {getDoctorStatusBadge(date, doctorId!)}
           </div>
         ) : selectedDoctor ? (
-          <span className="text-[8px] text-purple-400/60">tap</span>
-        ) : isDragging ? (
-          <span className="text-[8px] text-purple-300">⬇</span>
+          <span className="text-[8px] text-purple-500 font-medium">tap</span>
         ) : null}
       </td>
     );
   };
 
   return (
-    <div 
-      className="flex flex-col h-full"
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="flex flex-col h-full">
       {/* Month Selector */}
       <div className="flex items-center justify-between px-3 py-2 mx-2 mt-2 rounded-xl bg-white/80 backdrop-blur border border-purple-200/50 shadow-sm">
         <button onClick={prevMonth} className="p-2 rounded-lg bg-purple-100/60 active:bg-purple-200 transition-colors">
@@ -461,18 +304,9 @@ export default function JadwalTab() {
             <div
               key={doctor.id}
               draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/plain', doctor.id);
-                startDrag(doctor);
-              }}
-              onDragEnd={() => {
-                setIsDragging(false);
-                setDragDoctor(null);
-              }}
-              onTouchStart={handleTouchStart(doctor)}
-              onMouseDown={handleMouseDown(doctor)}
+              onDragStart={(e) => handleDragStart(e, doctor)}
               onClick={() => handleDoctorSelect(doctor)}
-              className={`doctor-chip px-2.5 py-1.5 rounded-full text-[11px] font-semibold border-2 ${
+              className={`doctor-chip px-2.5 py-1.5 rounded-full text-[11px] font-bold border-2 ${
                 selectedDoctor?.id === doctor.id ? 'selected' : ''
               }`}
               style={{
@@ -480,16 +314,18 @@ export default function JadwalTab() {
                 color: doctor.color,
                 boxShadow: selectedDoctor?.id === doctor.id
                   ? `0 0 12px ${doctor.color}50, 0 2px 8px rgba(155,89,182,0.2)`
-                  : `0 1px 4px ${doctor.color}20`,
-                background: selectedDoctor?.id === doctor.id ? `${doctor.color}15` : 'white',
+                  : `0 1px 4px ${doctor.color}30`,
+                background: selectedDoctor?.id === doctor.id ? `${doctor.color}20` : 'white',
               }}
             >
               {doctor.name}
-              {doctor.isBackup && <span className="text-[8px] ml-1 opacity-60">(CDT)</span>}
+              {doctor.isBackup && <span className="text-[8px] ml-1 opacity-70">(CDT)</span>}
             </div>
           ))}
         </div>
-        <p className="text-[9px] text-gray-400 mt-1 px-1">Tap untuk pilih, atau drag ke tabel. Tap sel berisi dokter untuk opsi.</p>
+        <p className="text-[9px] text-gray-500 mt-1 px-1">
+          💡 Desktop: Drag dokter ke tabel. Mobile: Tap dokter, lalu tap sel tujuan.
+        </p>
       </div>
 
       {/* Schedule Table */}
@@ -549,16 +385,13 @@ export default function JadwalTab() {
 
                   {/* Ket Column */}
                   <td
-                    data-cell="true"
-                    data-date={entry.date}
-                    data-field="ket"
                     className={`schedule-cell border border-purple-200/60 px-0.5 py-1 cursor-pointer ${
                       isHolidayRow ? 'bg-red-50/50' : 'bg-white/60'
-                    } ${dropTarget?.date === entry.date && dropTarget?.field === 'ket' ? 'drop-target' : ''}`}
+                    } hover:bg-purple-50/50 transition-colors`}
                     onClick={() => handleKetTap(entry.date)}
-                    onDragOver={handleHtml5DragOver}
-                    onDragLeave={handleHtml5DragLeave}
-                    onDrop={handleHtml5Drop(entry.date, 'ket')}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, entry.date, 'ket')}
                   >
                     <div className="flex flex-col gap-0.5">
                       {entry.ket.map((k, idx) => (
@@ -571,7 +404,7 @@ export default function JadwalTab() {
                             <span
                               className="text-[8px] font-semibold truncate flex-1"
                               style={{
-                                color: k.status === 'sakit' ? '#e53935' : k.status === 'izin' ? '#f9a825' : '#43a047'
+                                color: k.status === 'sakit' ? '#c62828' : k.status === 'izin' ? '#f57f17' : '#2e7d32'
                               }}
                             >
                               {k.label.replace('dr. ', '')}
@@ -599,23 +432,6 @@ export default function JadwalTab() {
           </tbody>
         </table>
       </div>
-
-      {/* Drag Ghost (Touch) */}
-      {isDragging && dragDoctor && (
-        <div
-          className="drag-ghost px-3 py-1.5 rounded-full text-[11px] font-bold border-2"
-          style={{
-            left: dragPos.x,
-            top: dragPos.y,
-            borderColor: dragDoctor.color,
-            color: dragDoctor.color,
-            background: 'white',
-            boxShadow: `0 4px 16px ${dragDoctor.color}40`,
-          }}
-        >
-          {dragDoctor.name}
-        </div>
-      )}
 
       {/* Cell Menu Modal */}
       {showCellMenu && (
@@ -704,7 +520,7 @@ export default function JadwalTab() {
                     className="accent-purple-500"
                   />
                   <span className="text-xs font-semibold capitalize" style={{
-                    color: status === 'sakit' ? '#e53935' : status === 'izin' ? '#f9a825' : '#43a047'
+                    color: status === 'sakit' ? '#c62828' : status === 'izin' ? '#f57f17' : '#2e7d32'
                   }}>
                     {status === 'sakit' ? '🤒 Sakit' : status === 'izin' ? '📋 Izin' : '🏥 Tugas Luar'}
                   </span>

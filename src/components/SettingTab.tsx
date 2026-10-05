@@ -257,6 +257,18 @@ export default function SettingTab() {
         <h3 className="text-xs font-semibold text-purple-700">Manajemen Data</h3>
         <div className="space-y-2">
           <button
+            onClick={() => {
+              if (confirm('Reset warna dokter ke default? Data jadwal tetap dipertahankan.')) {
+                localStorage.removeItem('puskesmas_doctors');
+                alert('Warna dokter berhasil direset. Reload halaman untuk melihat perubahan.');
+                window.location.reload();
+              }
+            }}
+            className="w-full py-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1.5"
+          >
+            <RotateCcw size={12} /> Reset Warna Dokter
+          </button>
+          <button
             onClick={handleResetData}
             className="w-full py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold flex items-center justify-center gap-1.5"
           >

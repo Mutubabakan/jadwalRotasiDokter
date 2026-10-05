@@ -8,11 +8,11 @@ const STORAGE_KEYS = {
 };
 
 export const defaultDoctors: Doctor[] = [
-  { id: 'santi', name: 'dr. Santi', color: '#00bcd4', isBackup: false },
-  { id: 'rakean', name: 'dr. Rakean', color: '#e91e63', isBackup: false },
-  { id: 'afif', name: 'dr. Afif', color: '#4caf50', isBackup: false },
-  { id: 'likha', name: 'dr. Likha', color: '#ff9800', isBackup: false },
-  { id: 'abdi', name: 'dr. Abdi', color: '#9c27b0', isBackup: true },
+  { id: 'santi', name: 'dr. Santi', color: '#0097a7', isBackup: false },
+  { id: 'rakean', name: 'dr. Rakean', color: '#c2185b', isBackup: false },
+  { id: 'afif', name: 'dr. Afif', color: '#388e3c', isBackup: false },
+  { id: 'likha', name: 'dr. Likha', color: '#f57c00', isBackup: false },
+  { id: 'abdi', name: 'dr. Abdi', color: '#7b1fa2', isBackup: true },
 ];
 
 // Indonesian National Holidays by year
