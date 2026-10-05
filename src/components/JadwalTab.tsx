@@ -19,6 +19,7 @@ export default function JadwalTab() {
   const [tugasLabel, setTugasLabel] = useState('');
   const [showCellMenu, setShowCellMenu] = useState<{ date: string; field: string } | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -333,10 +334,11 @@ export default function JadwalTab() {
 
   // === BERSIHKAN LAYAR ===
   const handleClearAll = () => {
-    if (!confirm('Hapus semua nama dokter di halaman ini?')) {
-      return;
-    }
+    setShowActionMenu(false);
+    setShowClearConfirm(true);
+  };
 
+  const confirmClearAll = () => {
     const newEntries = entries.map(entry => ({
       ...entry,
       k3a: undefined,
@@ -346,7 +348,7 @@ export default function JadwalTab() {
     }));
 
     persistEntries(newEntries);
-    setShowActionMenu(false);
+    setShowClearConfirm(false);
   };
 
   const getDoctorStatusBadge = (date: string, doctorId: string) => {
@@ -764,6 +766,32 @@ export default function JadwalTab() {
           <MoreVertical size={20} className="text-white" />
         </button>
       </div>
+
+      {/* Clear Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+          <div className="glass-card rounded-2xl p-4 w-full max-w-xs holo-border-gradient">
+            <h3 className="text-sm font-bold text-red-600 mb-2">Bersihkan Layar</h3>
+            <p className="text-xs text-gray-600 mb-4">
+              Hapus semua nama dokter di halaman bulan ini? Data keterangan (Ket) tetap dipertahankan.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmClearAll}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold shadow-sm"
+              >
+                Ya, Hapus
+              </button>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
