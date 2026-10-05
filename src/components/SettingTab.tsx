@@ -13,6 +13,9 @@ export default function SettingTab() {
   const [newHolidayName, setNewHolidayName] = useState('');
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportData, setExportData] = useState('');
+  const [exportCopied, setExportCopied] = useState(false);
   const [importText, setImportText] = useState('');
   const [cloneName, setCloneName] = useState('');
   const [copied, setCopied] = useState(false);
@@ -40,9 +43,27 @@ export default function SettingTab() {
 
   const handleExportData = () => {
     const data = exportAllData();
-    const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
+    setExportData(data);
+    setShowExportModal(true);
+    setExportCopied(false);
+  };
+
+  const handleCopyExport = () => {
+    navigator.clipboard.writeText(exportData).then(() => {
+      setExportCopied(true);
+      setTimeout(() => setExportCopied(false), 2000);
+    });
+  };
+
+  const handleDownloadExport = () => {
+    const blob = new Blob([exportData], { type: 'application/json;charset=utf-8' });
     const filename = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
     saveAs(blob, filename);
+  };
+
+  const handleOpenInNewTab = () => {
+    const dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(exportData);
+    window.open(dataUrl, '_blank');
   };
 
   const handleImportData = () => {
@@ -386,6 +407,61 @@ export default function SettingTab() {
                 className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
               >
                 Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+          <div className="glass-card rounded-2xl p-4 w-full max-w-xs holo-border-gradient max-h-[90vh] overflow-auto">
+            <h3 className="text-sm font-bold text-purple-700 mb-2">Export Data</h3>
+            <p className="text-[10px] text-gray-500 mb-3">
+              Pilih cara untuk menyimpan data backup:
+            </p>
+            
+            {/* Textarea untuk preview data */}
+            <textarea
+              readOnly
+              value={exportData}
+              className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-purple-200 text-[10px] font-mono text-gray-700 h-32 mb-3 resize-none"
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+            />
+
+            <div className="space-y-2">
+              {/* Copy to Clipboard */}
+              <button
+                onClick={handleCopyExport}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                {exportCopied ? <Check size={12} /> : <Copy size={12} />}
+                {exportCopied ? 'Tersalin!' : 'Copy ke Clipboard'}
+              </button>
+
+              {/* Download File */}
+              <button
+                onClick={handleDownloadExport}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <Download size={12} /> Download File JSON
+              </button>
+
+              {/* Open in New Tab */}
+              <button
+                onClick={handleOpenInNewTab}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <Upload size={12} /> Buka di Tab Baru
+              </button>
+
+              {/* Close */}
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="w-full py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
+              >
+                Tutup
               </button>
             </div>
           </div>
