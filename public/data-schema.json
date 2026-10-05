@@ -1,0 +1,254 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Jadwal Rotasi Dokter - Data Export Schema",
+  "description": "Schema untuk file export.json dari aplikasi Jadwal Rotasi Dokter",
+  "type": "object",
+  "required": ["doctors", "schedule", "holidays", "settings", "exportDate", "version"],
+  "properties": {
+    "doctors": {
+      "type": "array",
+      "description": "Daftar dokter",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "color", "isBackup"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID unik dokter (lowercase, no spaces)",
+            "examples": ["santi", "rakean", "afif", "likha", "abdi"]
+          },
+          "name": {
+            "type": "string",
+            "description": "Nama lengkap dokter",
+            "examples": ["dr. Santi", "dr. Rakean"]
+          },
+          "color": {
+            "type": "string",
+            "description": "Kode warna hex",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "examples": ["#1565c0", "#c2185b", "#388e3c"]
+          },
+          "isBackup": {
+            "type": "boolean",
+            "description": "Apakah dokter cadangan",
+            "default": false
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "schedule": {
+      "type": "object",
+      "description": "Jadwal rotasi per bulan",
+      "additionalProperties": {
+        "type": "array",
+        "description": "Array jadwal untuk bulan tertentu (format: YYYY-MM)",
+        "items": {
+          "type": "object",
+          "required": ["date", "ket"],
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Tanggal (format: YYYY-MM-DD)",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "examples": ["2025-01-01", "2025-01-15"]
+            },
+            "k3a": {
+              "type": ["string", "null"],
+              "description": "ID dokter di K3a",
+              "examples": ["santi", "rakean"]
+            },
+            "k3b": {
+              "type": ["string", "null"],
+              "description": "ID dokter di K3b",
+              "examples": ["afif", "likha"]
+            },
+            "igd": {
+              "type": ["string", "null"],
+              "description": "ID dokter di IGD",
+              "examples": ["santi", "abdi"]
+            },
+            "k2": {
+              "type": ["string", "null"],
+              "description": "ID dokter di K2",
+              "examples": ["rakean", "afif"]
+            },
+            "ket": {
+              "type": "array",
+              "description": "Keterangan (libur, izin, sakit, tugas)",
+              "items": {
+                "type": "object",
+                "required": ["type", "label"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["holiday", "doctor"],
+                    "description": "Tipe keterangan"
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Label keterangan"
+                  },
+                  "doctorId": {
+                    "type": "string",
+                    "description": "ID dokter (jika type=doctor)"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["izin", "sakit", "tugas"],
+                    "description": "Status dokter (jika type=doctor)"
+                  },
+                  "tugasLabel": {
+                    "type": "string",
+                    "description": "Jenis tugas (jika status=tugas)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "propertyNames": {
+        "pattern": "^\\d{4}-\\d{2}$"
+      }
+    },
+    "holidays": {
+      "type": "object",
+      "description": "Hari libur nasional per tahun",
+      "additionalProperties": {
+        "type": "array",
+        "description": "Array hari libur untuk tahun tertentu",
+        "items": {
+          "type": "object",
+          "required": ["date", "name"],
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Tanggal libur (format: YYYY-MM-DD)",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "name": {
+              "type": "string",
+              "description": "Nama hari libur",
+              "examples": ["Tahun Baru Masehi", "Idul Fitri", "Hari Kemerdekaan RI"]
+            }
+          }
+        }
+      },
+      "propertyNames": {
+        "pattern": "^\\d{4}$"
+      }
+    },
+    "settings": {
+      "type": "object",
+      "description": "Pengaturan aplikasi",
+      "properties": {
+        "puskesmasName": {
+          "type": "string",
+          "description": "Nama puskesmas",
+          "default": "Puskesmas Babakan"
+        }
+      }
+    },
+    "exportDate": {
+      "type": "string",
+      "description": "Tanggal export (ISO 8601)",
+      "format": "date-time"
+    },
+    "version": {
+      "type": "string",
+      "description": "Versi format data",
+      "default": "1.0"
+    },
+    "isClone": {
+      "type": "boolean",
+      "description": "Apakah ini data clone",
+      "default": false
+    },
+    "cloneDate": {
+      "type": "string",
+      "description": "Tanggal clone (jika isClone=true)",
+      "format": "date-time"
+    }
+  },
+  "examples": [
+    {
+      "doctors": [
+        {
+          "id": "santi",
+          "name": "dr. Santi",
+          "color": "#1565c0",
+          "isBackup": false
+        },
+        {
+          "id": "rakean",
+          "name": "dr. Rakean",
+          "color": "#c2185b",
+          "isBackup": false
+        },
+        {
+          "id": "afif",
+          "name": "dr. Afif",
+          "color": "#388e3c",
+          "isBackup": false
+        },
+        {
+          "id": "likha",
+          "name": "dr. Likha",
+          "color": "#f57c00",
+          "isBackup": false
+        },
+        {
+          "id": "abdi",
+          "name": "dr. Abdi",
+          "color": "#7b1fa2",
+          "isBackup": true
+        }
+      ],
+      "schedule": {
+        "2025-01": [
+          {
+            "date": "2025-01-01",
+            "k3a": "santi",
+            "k3b": "rakean",
+            "igd": "afif",
+            "k2": "likha",
+            "ket": []
+          },
+          {
+            "date": "2025-01-02",
+            "k3a": "santi",
+            "k3b": "rakean",
+            "igd": "afif",
+            "k2": "likha",
+            "ket": [
+              {
+                "type": "doctor",
+                "label": "dr. Santi",
+                "doctorId": "santi",
+                "status": "izin"
+              }
+            ]
+          }
+        ]
+      },
+      "holidays": {
+        "2025": [
+          {
+            "date": "2025-01-01",
+            "name": "Tahun Baru Masehi"
+          },
+          {
+            "date": "2025-01-29",
+            "name": "Tahun Baru Imlek"
+          }
+        ]
+      },
+      "settings": {
+        "puskesmasName": "Puskesmas Babakan"
+      },
+      "exportDate": "2025-01-15T10:30:00.000Z",
+      "version": "1.0"
+    }
+  ]
+}
