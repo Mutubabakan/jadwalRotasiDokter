@@ -4,59 +4,59 @@ const STORAGE_KEYS = {
   DOCTORS: 'puskesmas_doctors',
   SCHEDULE: 'puskesmas_schedule',
   SETTINGS: 'puskesmas_settings',
+  HOLIDAYS: 'puskesmas_holidays',
 };
 
-// Default doctors
 export const defaultDoctors: Doctor[] = [
-  { id: 'santi', name: 'dr. Santi', color: '#00ffff', isBackup: false },
-  { id: 'rakean', name: 'dr. Rakean', color: '#ff00ff', isBackup: false },
-  { id: 'afif', name: 'dr. Afif', color: '#39ff14', isBackup: false },
-  { id: 'likha', name: 'dr. Likha', color: '#ff6600', isBackup: false },
-  { id: 'abdi', name: 'dr. Abdi', color: '#ffff00', isBackup: true },
+  { id: 'santi', name: 'dr. Santi', color: '#00bcd4', isBackup: false },
+  { id: 'rakean', name: 'dr. Rakean', color: '#e91e63', isBackup: false },
+  { id: 'afif', name: 'dr. Afif', color: '#4caf50', isBackup: false },
+  { id: 'likha', name: 'dr. Likha', color: '#ff9800', isBackup: false },
+  { id: 'abdi', name: 'dr. Abdi', color: '#9c27b0', isBackup: true },
 ];
 
-// 2025 Indonesian National Holidays
-export const defaultHolidays = [
-  { date: '2025-01-01', name: 'Tahun Baru Masehi' },
-  { date: '2025-01-27', name: 'Isra Miraj Nabi Muhammad SAW' },
-  { date: '2025-01-29', name: 'Cuti Bersama Tahun Baru Imlek' },
-  { date: '2025-01-30', name: 'Tahun Baru Imlek' },
-  { date: '2025-03-29', name: 'Hari Raya Nyepi' },
-  { date: '2025-03-31', name: 'Idul Fitri' },
-  { date: '2025-04-01', name: 'Idul Fitri' },
-  { date: '2025-04-03', name: 'Cuti Bersama Idul Fitri' },
-  { date: '2025-04-04', name: 'Cuti Bersama Idul Fitri' },
-  { date: '2025-04-07', name: 'Cuti Bersama Idul Fitri' },
-  { date: '2025-04-18', name: 'Wafat Isa Al Masih' },
-  { date: '2025-05-01', name: 'Hari Buruh Internasional' },
-  { date: '2025-05-12', name: 'Hari Raya Waisak' },
-  { date: '2025-05-29', name: 'Kenaikan Isa Al Masih' },
-  { date: '2025-06-01', name: 'Hari Lahir Pancasila' },
-  { date: '2025-06-06', name: 'Idul Adha' },
-  { date: '2025-06-07', name: 'Cuti Bersama Idul Adha' },
-  { date: '2025-06-27', name: 'Tahun Baru Islam' },
-  { date: '2025-08-17', name: 'Hari Kemerdekaan RI' },
-  { date: '2025-09-05', name: 'Maulid Nabi Muhammad SAW' },
-  { date: '2025-10-05', name: 'Hari Kesaktian Pancasila' },
-  { date: '2025-12-25', name: 'Hari Natal' },
-  { date: '2025-12-26', name: 'Cuti Bersama Natal' },
-  // 2026
-  { date: '2026-01-01', name: 'Tahun Baru Masehi' },
-  { date: '2026-02-17', name: 'Tahun Baru Imlek' },
-  { date: '2026-03-19', name: 'Hari Raya Nyepi' },
-  { date: '2026-03-20', name: 'Idul Fitri' },
-  { date: '2026-03-21', name: 'Idul Fitri' },
-  { date: '2026-04-03', name: 'Idul Adha' },
-  { date: '2026-05-01', name: 'Hari Buruh Internasional' },
-  { date: '2026-05-27', name: 'Hari Raya Waisak' },
-  { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
-  { date: '2026-08-17', name: 'Hari Kemerdekaan RI' },
-  { date: '2026-12-25', name: 'Hari Natal' },
-];
+// Indonesian National Holidays by year
+export const defaultHolidaysByYear: Record<number, { date: string; name: string }[]> = {
+  2025: [
+    { date: '2025-01-01', name: 'Tahun Baru Masehi' },
+    { date: '2025-01-27', name: 'Isra Miraj Nabi Muhammad SAW' },
+    { date: '2025-01-29', name: 'Tahun Baru Imlek' },
+    { date: '2025-03-29', name: 'Hari Raya Nyepi' },
+    { date: '2025-03-31', name: 'Idul Fitri' },
+    { date: '2025-04-01', name: 'Idul Fitri' },
+    { date: '2025-04-18', name: 'Wafat Isa Al Masih' },
+    { date: '2025-05-01', name: 'Hari Buruh Internasional' },
+    { date: '2025-05-12', name: 'Hari Raya Waisak' },
+    { date: '2025-05-29', name: 'Kenaikan Isa Al Masih' },
+    { date: '2025-06-01', name: 'Hari Lahir Pancasila' },
+    { date: '2025-06-07', name: 'Idul Adha' },
+    { date: '2025-06-27', name: 'Tahun Baru Islam' },
+    { date: '2025-09-05', name: 'Maulid Nabi Muhammad SAW' },
+    { date: '2025-12-25', name: 'Hari Natal' },
+  ],
+  2026: [
+    { date: '2026-01-01', name: 'Tahun Baru Masehi' },
+    { date: '2026-01-16', name: 'Isra Miraj Nabi Muhammad SAW' },
+    { date: '2026-02-17', name: 'Tahun Baru Imlek' },
+    { date: '2026-03-19', name: 'Hari Raya Nyepi' },
+    { date: '2026-03-20', name: 'Idul Fitri' },
+    { date: '2026-03-21', name: 'Idul Fitri' },
+    { date: '2026-04-03', name: 'Wafat Isa Al Masih' },
+    { date: '2026-05-01', name: 'Hari Buruh Internasional' },
+    { date: '2026-05-27', name: 'Hari Raya Waisak' },
+    { date: '2026-05-14', name: 'Kenaikan Isa Al Masih' },
+    { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
+    { date: '2026-05-27', name: 'Idul Adha' },
+    { date: '2026-06-17', name: 'Tahun Baru Islam' },
+    { date: '2026-08-17', name: 'Hari Kemerdekaan RI' },
+    { date: '2026-09-24', name: 'Maulid Nabi Muhammad SAW' },
+    { date: '2026-12-25', name: 'Hari Natal' },
+  ],
+};
 
 export const defaultSettings: AppSettings = {
   puskesmasName: 'Puskesmas Babakan',
-  nationalHolidays: defaultHolidays,
+  nationalHolidays: [],
   gasScriptUrl: '',
 };
 
@@ -93,6 +93,36 @@ export function saveSettings(settings: AppSettings): void {
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
+// Holidays by year
+export function getHolidaysByYear(year: number): { date: string; name: string }[] {
+  const stored = localStorage.getItem(STORAGE_KEYS.HOLIDAYS);
+  if (stored) {
+    const all: Record<string, { date: string; name: string }[]> = JSON.parse(stored);
+    if (all[year]) return all[year];
+  }
+  // Return default if exists
+  if (defaultHolidaysByYear[year]) return defaultHolidaysByYear[year];
+  return [];
+}
+
+export function saveHolidaysByYear(year: number, holidays: { date: string; name: string }[]): void {
+  const stored = localStorage.getItem(STORAGE_KEYS.HOLIDAYS);
+  let all: Record<string, { date: string; name: string }[]> = {};
+  if (stored) all = JSON.parse(stored);
+  all[year] = holidays;
+  localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(all));
+}
+
+export function getAllHolidays(): { date: string; name: string }[] {
+  const stored = localStorage.getItem(STORAGE_KEYS.HOLIDAYS);
+  if (stored) {
+    const all: Record<string, { date: string; name: string }[]> = JSON.parse(stored);
+    return Object.values(all).flat().sort((a, b) => a.date.localeCompare(b.date));
+  }
+  // Return all defaults
+  return Object.values(defaultHolidaysByYear).flat().sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export function getMonthSchedule(year: number, month: number): ScheduleEntry[] {
   const schedule = getSchedule();
   const key = `${year}-${String(month + 1).padStart(2, '0')}`;
@@ -110,19 +140,46 @@ export function getDoctorById(doctors: Doctor[], id: string): Doctor | undefined
   return doctors.find(d => d.id === id);
 }
 
-export function isHoliday(date: string, settings: AppSettings): boolean {
+export function isHoliday(date: string): boolean {
   const d = new Date(date);
   const day = d.getDay();
   if (day === 0) return true; // Sunday
-  return settings.nationalHolidays.some(h => h.date === date);
+  const year = d.getFullYear();
+  const holidays = getHolidaysByYear(year);
+  return holidays.some(h => h.date === date);
 }
 
-export function getHolidayName(date: string, settings: AppSettings): string | null {
-  const holiday = settings.nationalHolidays.find(h => h.date === date);
+export function getHolidayName(date: string): string | null {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const holidays = getHolidaysByYear(year);
+  const holiday = holidays.find(h => h.date === date);
   return holiday ? holiday.name : null;
 }
 
-export function getKetEntries(entries: ScheduleEntry[], date: string): KetEntry[] {
-  const entry = entries.find(e => e.date === date);
-  return entry?.ket || [];
+// Clone/Export/Import
+export function exportAllData(): string {
+  const data = {
+    doctors: getDoctors(),
+    schedule: getSchedule(),
+    settings: getSettings(),
+    holidays: JSON.parse(localStorage.getItem(STORAGE_KEYS.HOLIDAYS) || '{}'),
+    exportDate: new Date().toISOString(),
+    version: '1.0',
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export function importAllData(jsonStr: string): boolean {
+  try {
+    const data = JSON.parse(jsonStr);
+    if (data.doctors) localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(data.doctors));
+    if (data.schedule) localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(data.schedule));
+    if (data.settings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(data.settings));
+    if (data.holidays) localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(data.holidays));
+    return true;
+  } catch (err) {
+    console.error('Import failed:', err);
+    return false;
+  }
 }
