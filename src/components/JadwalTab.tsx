@@ -303,33 +303,93 @@ export default function JadwalTab() {
       return;
     }
 
-    // Copy jadwal dari bulan sebelumnya, sesuaikan tanggal
+    // Cari tanggal terakhir di bulan sebelumnya yang terisi
+    const lastDayPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+    let lastFilledEntry: ScheduleEntry | null = null;
+    
+    for (let d = lastDayPrevMonth; d >= 1; d--) {
+      const dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const entry = prevEntries.find(e => e.date === dateStr);
+      if (entry && (entry.k3a || entry.k3b || entry.igd || entry.k2)) {
+        lastFilledEntry = entry;
+        break;
+      }
+    }
+
+    if (!lastFilledEntry) {
+      alert('Tidak ada data dokter di bulan sebelumnya.');
+      return;
+    }
+
+    const fields = ['k3a', 'k3b', 'igd', 'k2'];
+    const activeDoctors = doctors.filter(d => !d.isBackup);
+    
+    // Tentukan posisi dokter dari tanggal terakhir bulan sebelumnya
+    const doctorPositions: { [doctorId: string]: number } = {};
+    fields.forEach((field, posIdx) => {
+      const doctorId = (lastFilledEntry as any)[field];
+      if (doctorId) {
+        doctorPositions[doctorId] = posIdx;
+      }
+    });
+    
+    // Isi dokter yang belum ada posisi dengan rotasi
+    let nextPos = 0;
+    activeDoctors.forEach(doctor => {
+      if (!(doctor.id in doctorPositions)) {
+        while (fields[nextPos] && Object.values(doctorPositions).includes(nextPos)) {
+          nextPos++;
+        }
+        if (nextPos < fields.length) {
+          doctorPositions[doctor.id] = nextPos;
+          nextPos++;
+        }
+      }
+    });
+
+    // Generate jadwal untuk bulan ini dengan melanjutkan rotasi
     const newEntries = entries.map(entry => {
       const dateObj = new Date(entry.date + 'T00:00:00');
-      const day = dateObj.getDate();
+      const dayOfWeek = dateObj.getDay();
       
-      // Cari entry yang sama di bulan sebelumnya (tanggal sama)
-      const prevDateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const prevEntry = prevEntries.find(e => e.date === prevDateStr);
-      
-      if (prevEntry) {
-        // Copy data dari bulan sebelumnya (hanya K3a-K2, tidak termasuk Ket)
-        return {
-          ...entry,
-          k3a: prevEntry.k3a,
-          k3b: prevEntry.k3b,
-          igd: prevEntry.igd,
-          k2: prevEntry.k2,
-          // ket tidak ikut disalin
-        };
+      // Skip Minggu dan hari libur
+      if (dayOfWeek === 0 || isHoliday(entry.date)) {
+        return entry;
       }
+
+      // Hitung selisih hari dari tanggal terakhir bulan sebelumnya
+      const lastFilledDate = new Date(lastFilledEntry!.date + 'T00:00:00');
+      const daysDiff = Math.floor((dateObj.getTime() - lastFilledDate.getTime()) / (1000 * 60 * 60 * 24));
+      const weekOffset = Math.floor(daysDiff / 7);
       
-      return entry;
+      // Buat entry baru dengan rotasi
+      const newEntry = { ...entry };
+      
+      // Clear fields
+      fields.forEach(field => {
+        (newEntry as any)[field] = undefined;
+      });
+      
+      // Isi dengan rotasi
+      activeDoctors.forEach(doctor => {
+        if (doctor.id in doctorPositions) {
+          const basePos = doctorPositions[doctor.id];
+          const rotatedPos = (basePos + weekOffset) % fields.length;
+          const field = fields[rotatedPos];
+          
+          // Hanya isi jika field belum terisi
+          if (!(newEntry as any)[field]) {
+            (newEntry as any)[field] = doctor.id;
+          }
+        }
+      });
+      
+      return newEntry;
     });
 
     persistEntries(newEntries);
     setShowActionMenu(false);
-    alert('Jadwal berhasil diupdate dari bulan sebelumnya!');
+    alert('Jadwal berhasil dilanjutkan dari bulan sebelumnya!');
   };
 
   // === BERSIHKAN LAYAR ===
