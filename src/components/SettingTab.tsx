@@ -111,6 +111,7 @@ export default function SettingTab() {
 
   const [showResetScheduleConfirm, setShowResetScheduleConfirm] = useState(false);
   const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
+  const [showResetColorConfirm, setShowResetColorConfirm] = useState(false);
 
   const handleResetData = () => {
     setShowResetScheduleConfirm(true);
@@ -131,6 +132,17 @@ export default function SettingTab() {
     localStorage.clear();
     setShowResetAllConfirm(false);
     alert('Semua data berhasil direset. Halaman akan di-reload.');
+    window.location.reload();
+  };
+
+  const handleResetColor = () => {
+    setShowResetColorConfirm(true);
+  };
+
+  const confirmResetColor = () => {
+    localStorage.removeItem('puskesmas_doctors');
+    setShowResetColorConfirm(false);
+    alert('Warna dokter berhasil direset. Halaman akan di-reload.');
     window.location.reload();
   };
 
@@ -271,13 +283,7 @@ export default function SettingTab() {
         <h3 className="text-xs font-semibold text-purple-700">Manajemen Data</h3>
         <div className="space-y-2">
           <button
-            onClick={() => {
-              if (confirm('Reset warna dokter ke default? Data jadwal tetap dipertahankan.')) {
-                localStorage.removeItem('puskesmas_doctors');
-                alert('Warna dokter berhasil direset. Reload halaman untuk melihat perubahan.');
-                window.location.reload();
-              }
-            }}
+            onClick={handleResetColor}
             className="w-full py-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1.5"
           >
             <RotateCcw size={12} /> Reset Warna Dokter
@@ -472,6 +478,32 @@ export default function SettingTab() {
               </button>
               <button
                 onClick={() => setShowResetAllConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Color Confirmation Modal */}
+      {showResetColorConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+          <div className="glass-card rounded-2xl p-4 w-full max-w-xs holo-border-gradient">
+            <h3 className="text-sm font-bold text-purple-700 mb-2">Reset Warna Dokter</h3>
+            <p className="text-xs text-gray-600 mb-4">
+              Reset warna semua dokter ke default? Data jadwal tetap dipertahankan.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmResetColor}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold shadow-sm"
+              >
+                Ya, Reset
+              </button>
+              <button
+                onClick={() => setShowResetColorConfirm(false)}
                 className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs"
               >
                 Batal
