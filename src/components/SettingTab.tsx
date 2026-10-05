@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { AppSettings } from '../utils/types';
 import { getSettings, saveSettings, getHolidaysByYear, saveHolidaysByYear, exportAllData, importAllData } from '../utils/storage';
-import { Save, Trash2, Plus, X, Database, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
+import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
 
 export default function SettingTab() {
   const [settings, setSettings] = useState<AppSettings>(getSettings());
-  const [gasUrl, setGasUrl] = useState(settings.gasScriptUrl);
-  const [saved, setSaved] = useState(false);
   const [holidayYear, setHolidayYear] = useState(new Date().getFullYear());
   const [holidays, setHolidays] = useState<{ date: string; name: string }[]>([]);
   const [showAddHoliday, setShowAddHoliday] = useState(false);
@@ -22,14 +20,6 @@ export default function SettingTab() {
   useEffect(() => {
     setHolidays(getHolidaysByYear(holidayYear));
   }, [holidayYear]);
-
-  const handleSave = () => {
-    const updated = { ...settings, gasScriptUrl: gasUrl, puskesmasName: settings.puskesmasName };
-    setSettings(updated);
-    saveSettings(updated);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
 
   const handleAddHoliday = () => {
     if (!newHolidayDate || !newHolidayName.trim()) return;
@@ -165,32 +155,6 @@ export default function SettingTab() {
         />
       </div>
 
-      {/* Google Apps Script URL */}
-      <div className="glass-card rounded-2xl p-3 space-y-2 holo-border-gradient">
-        <h3 className="text-xs font-semibold text-purple-700 flex items-center gap-1.5">
-          <Database size={12} /> Google Apps Script URL
-        </h3>
-        <p className="text-[10px] text-gray-500">
-          URL Web App dari Google Apps Script untuk sinkronisasi ke Google Spreadsheet.
-        </p>
-        <input
-          type="url"
-          value={gasUrl}
-          onChange={(e) => setGasUrl(e.target.value)}
-          placeholder="https://script.google.com/macros/s/..."
-          className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-purple-200 text-xs text-gray-700"
-        />
-        <button
-          onClick={handleSave}
-          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
-        >
-          <Save size={12} /> Simpan Pengaturan
-        </button>
-        {saved && (
-          <p className="text-[10px] text-green-600 text-center font-medium">✓ Pengaturan tersimpan</p>
-        )}
-      </div>
-
       {/* National Holidays per Year */}
       <div className="glass-card rounded-2xl p-3 space-y-2 holo-border-gradient">
         <div className="flex items-center justify-between">
@@ -309,8 +273,7 @@ export default function SettingTab() {
         <p className="text-[10px] text-gray-500">Jadwal Rotasi Dokter v1.0</p>
         <p className="text-[10px] text-gray-500">{settings.puskesmasName}</p>
         <p className="text-[10px] text-gray-400 mt-1">
-          Data tersimpan di localStorage. Untuk sinkronisasi ke Google Spreadsheet, 
-          deploy Google Apps Script dan masukkan URL-nya di atas.
+          Data tersimpan di localStorage browser. Gunakan fitur Export/Import untuk backup atau clone ke perangkat lain.
         </p>
       </div>
 
