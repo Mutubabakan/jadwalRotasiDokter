@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --color-holo-bg: #f0eef5;
+  --color-holo-card: #ffffff;
+  --color-holo-border: #d8d0e8;
+  --color-holo-purple: #9b59b6;
+  --color-holo-pink: #e91e8c;
+  --color-holo-silver: #c0c0c0;
+  --color-neon-cyan: #00bcd4;
+  --color-neon-magenta: #e91e63;
+  --color-neon-green: #4caf50;
+  --color-neon-orange: #ff9800;
+  --color-neon-yellow: #ffc107;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+::-webkit-scrollbar-track {
+  background: #f0eef5;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9b59b6, #e91e8c);
+  border-radius: 4px;
+}
+
+/* Holographic shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes holo-border-anim {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.holo-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(155, 89, 182, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.holo-border-gradient {
+  position: relative;
+}
+.holo-border-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #9b59b6, #e91e8c, #c0c0c0, #9b59b6);
+  background-size: 300% 300%;
+  animation: holo-border-anim 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(155, 89, 182, 0.2);
+  box-shadow: 0 2px 12px rgba(155, 89, 182, 0.08);
+}
+
+/* Doctor chip */
+.doctor-chip {
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  touch-action: none;
+  position: relative;
+}
+.doctor-chip:active {
+  cursor: grabbing;
+  transform: scale(1.08);
+}
+.doctor-chip.selected {
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+/* Schedule cells */
+.schedule-cell {
+  min-height: 32px;
+  transition: all 0.15s ease;
+}
+.schedule-cell.drop-target {
+  background: rgba(155, 89, 182, 0.25) !important;
+  box-shadow: inset 0 0 12px rgba(233, 30, 140, 0.4);
+  border-color: #9b59b6 !important;
+}
+
+/* Holiday row */
+.holiday-row {
+  background: rgba(244, 67, 54, 0.08) !important;
+}
+
+/* Tab */
+.tab-active {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.12), rgba(233, 30, 140, 0.12));
+  border-bottom: 2px solid #e91e8c;
+}
+
+/* Touch drag ghost */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.85;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Neon text light theme */
+.neon-text {
+  text-shadow: 0 0 4px currentColor;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  background: rgba(240, 238, 245, 0.85);
+  backdrop-filter: blur(8px);
+}
