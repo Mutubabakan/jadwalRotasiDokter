@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Doctor, ScheduleEntry, KetEntry } from '../utils/types';
 import { getDoctors, getMonthSchedule, saveMonthSchedule, isHoliday, getHolidayName } from '../utils/storage';
-import { ChevronLeft, ChevronRight, Plus, X, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Check, MoreVertical, Wand2, Copy, Trash2 } from 'lucide-react';
 
 const DAYS_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -18,6 +18,7 @@ export default function JadwalTab() {
   const [selectedStatus, setSelectedStatus] = useState<'izin' | 'sakit' | 'tugas'>('izin');
   const [tugasLabel, setTugasLabel] = useState('');
   const [showCellMenu, setShowCellMenu] = useState<{ date: string; field: string } | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -201,6 +202,152 @@ export default function JadwalTab() {
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // === AUTO JADWAL ===
+  const handleAutoJadwal = () => {
+    // Cari hari pertama yang sudah diisi manual sebagai referensi
+    const firstFilledEntry = entries.find(e => e.k3a || e.k3b || e.igd || e.k2);
+    if (!firstFilledEntry) {
+      alert('Isi minimal satu hari terlebih dahulu sebagai referensi rotasi.');
+      return;
+    }
+
+    const fields = ['k3a', 'k3b', 'igd', 'k2'];
+    const activeDoctors = doctors.filter(d => !d.isBackup);
+    
+    // Tentukan posisi awal dokter dari hari referensi
+    const referenceDate = new Date(firstFilledEntry.date + 'T00:00:00');
+    const referenceWeek = Math.floor((referenceDate.getDate() - 1) / 7);
+    
+    // Buat mapping dokter ke posisi awal
+    const doctorPositions: { [doctorId: string]: number } = {};
+    
+    // Cek posisi dokter di hari referensi
+    fields.forEach((field, posIdx) => {
+      const doctorId = (firstFilledEntry as any)[field];
+      if (doctorId) {
+        doctorPositions[doctorId] = posIdx;
+      }
+    });
+    
+    // Isi dokter yang belum ada posisi dengan rotasi
+    let nextPos = 0;
+    activeDoctors.forEach(doctor => {
+      if (!(doctor.id in doctorPositions)) {
+        while (fields[nextPos] && Object.values(doctorPositions).includes(nextPos)) {
+          nextPos++;
+        }
+        if (nextPos < fields.length) {
+          doctorPositions[doctor.id] = nextPos;
+          nextPos++;
+        }
+      }
+    });
+
+    // Generate jadwal untuk semua hari
+    const newEntries = entries.map(entry => {
+      const dateObj = new Date(entry.date + 'T00:00:00');
+      const dayOfWeek = dateObj.getDay();
+      
+      // Skip Minggu dan hari libur
+      if (dayOfWeek === 0 || isHoliday(entry.date)) {
+        return entry;
+      }
+
+      // Hitung minggu ke berapa (dari hari referensi)
+      const daysDiff = Math.floor((dateObj.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24));
+      const weekOffset = Math.floor(daysDiff / 7);
+      
+      // Buat entry baru dengan rotasi
+      const newEntry = { ...entry, ket: [...entry.ket] };
+      
+      // Clear fields dulu (kecuali yang sudah diisi manual di hari referensi)
+      if (entry.date !== firstFilledEntry.date) {
+        fields.forEach(field => {
+          (newEntry as any)[field] = undefined;
+        });
+      }
+      
+      // Isi dengan rotasi
+      activeDoctors.forEach(doctor => {
+        if (doctor.id in doctorPositions) {
+          const basePos = doctorPositions[doctor.id];
+          const rotatedPos = (basePos + weekOffset) % fields.length;
+          const field = fields[rotatedPos];
+          
+          // Hanya isi jika field belum terisi
+          if (!(newEntry as any)[field]) {
+            (newEntry as any)[field] = doctor.id;
+          }
+        }
+      });
+      
+      return newEntry;
+    });
+
+    persistEntries(newEntries);
+    setShowActionMenu(false);
+    alert('Jadwal otomatis berhasil dibuat!');
+  };
+
+  // === AUTO UPDATE DARI BULAN SEBELUMNYA ===
+  const handleAutoUpdatePrevMonth = () => {
+    const prevMonthDate = new Date(year, month - 1, 1);
+    const prevYear = prevMonthDate.getFullYear();
+    const prevMonth = prevMonthDate.getMonth();
+    const prevEntries = getMonthSchedule(prevYear, prevMonth);
+    
+    if (prevEntries.length === 0) {
+      alert('Tidak ada data jadwal di bulan sebelumnya.');
+      return;
+    }
+
+    // Copy jadwal dari bulan sebelumnya, sesuaikan tanggal
+    const newEntries = entries.map(entry => {
+      const dateObj = new Date(entry.date + 'T00:00:00');
+      const day = dateObj.getDate();
+      
+      // Cari entry yang sama di bulan sebelumnya (tanggal sama)
+      const prevDateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const prevEntry = prevEntries.find(e => e.date === prevDateStr);
+      
+      if (prevEntry) {
+        // Copy data dari bulan sebelumnya
+        return {
+          ...entry,
+          k3a: prevEntry.k3a,
+          k3b: prevEntry.k3b,
+          igd: prevEntry.igd,
+          k2: prevEntry.k2,
+          ket: [...prevEntry.ket],
+        };
+      }
+      
+      return entry;
+    });
+
+    persistEntries(newEntries);
+    setShowActionMenu(false);
+    alert('Jadwal berhasil diupdate dari bulan sebelumnya!');
+  };
+
+  // === BERSIHKAN LAYAR ===
+  const handleClearAll = () => {
+    if (!confirm('Hapus semua nama dokter di halaman ini?')) {
+      return;
+    }
+
+    const newEntries = entries.map(entry => ({
+      ...entry,
+      k3a: undefined,
+      k3b: undefined,
+      igd: undefined,
+      k2: undefined,
+    }));
+
+    persistEntries(newEntries);
+    setShowActionMenu(false);
+  };
 
   const getDoctorStatusBadge = (date: string, doctorId: string) => {
     const status = getDoctorStatus(date, doctorId);
@@ -582,6 +729,41 @@ export default function JadwalTab() {
           </div>
         </div>
       )}
+
+      {/* Floating Action Button */}
+      <div className="fixed bottom-4 right-4 z-40">
+        {showActionMenu && (
+          <div className="mb-2 glass-card rounded-2xl p-2 shadow-lg holo-border-gradient min-w-[200px]">
+            <button
+              onClick={handleAutoJadwal}
+              className="w-full py-2.5 px-3 rounded-xl text-left text-xs flex items-center gap-2 hover:bg-purple-50 transition-colors"
+            >
+              <Wand2 size={14} className="text-purple-600" />
+              <span className="text-gray-700 font-medium">Auto Jadwal</span>
+            </button>
+            <button
+              onClick={handleAutoUpdatePrevMonth}
+              className="w-full py-2.5 px-3 rounded-xl text-left text-xs flex items-center gap-2 hover:bg-purple-50 transition-colors"
+            >
+              <Copy size={14} className="text-blue-600" />
+              <span className="text-gray-700 font-medium">Update dari Bulan Lalu</span>
+            </button>
+            <button
+              onClick={handleClearAll}
+              className="w-full py-2.5 px-3 rounded-xl text-left text-xs flex items-center gap-2 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 size={14} className="text-red-600" />
+              <span className="text-gray-700 font-medium">Bersihkan Layar</span>
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => setShowActionMenu(!showActionMenu)}
+          className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <MoreVertical size={20} className="text-white" />
+        </button>
+      </div>
     </div>
   );
 }

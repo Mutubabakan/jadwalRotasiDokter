@@ -8,7 +8,7 @@ const STORAGE_KEYS = {
 };
 
 export const defaultDoctors: Doctor[] = [
-  { id: 'santi', name: 'dr. Santi', color: '#0097a7', isBackup: false },
+  { id: 'santi', name: 'dr. Santi', color: '#1565c0', isBackup: false },
   { id: 'rakean', name: 'dr. Rakean', color: '#c2185b', isBackup: false },
   { id: 'afif', name: 'dr. Afif', color: '#388e3c', isBackup: false },
   { id: 'likha', name: 'dr. Likha', color: '#f57c00', isBackup: false },
