@@ -29,6 +29,7 @@ export interface ScheduleData {
 export interface AppSettings {
   puskesmasName: string;
   nationalHolidays: NationalHoliday[];
+  gasScriptUrl?: string;
 }
 
 export interface NationalHoliday {

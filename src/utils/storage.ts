@@ -57,6 +57,7 @@ export const defaultHolidaysByYear: Record<number, { date: string; name: string 
 export const defaultSettings: AppSettings = {
   puskesmasName: 'Puskesmas Babakan',
   nationalHolidays: [],
+  gasScriptUrl: '',
 };
 
 // Storage functions

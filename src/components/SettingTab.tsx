@@ -19,6 +19,9 @@ export default function SettingTab() {
   const [importText, setImportText] = useState('');
   const [cloneName, setCloneName] = useState('');
   const [copied, setCopied] = useState(false);
+  const [gasUrl, setGasUrl] = useState(settings.gasScriptUrl || '');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [syncMessage, setSyncMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -64,6 +67,58 @@ export default function SettingTab() {
   const handleOpenInNewTab = () => {
     const dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(exportData);
     window.open(dataUrl, '_blank');
+  };
+
+  const handleSaveGasUrl = () => {
+    const updated = { ...settings, gasScriptUrl: gasUrl };
+    setSettings(updated);
+    saveSettings(updated);
+    alert('URL Google Apps Script berhasil disimpan!');
+  };
+
+  const handleSyncToSpreadsheet = async () => {
+    if (!gasUrl.trim()) {
+      alert('URL Google Apps Script belum diisi! Silakan isi di atas terlebih dahulu.');
+      return;
+    }
+
+    setSyncStatus('syncing');
+    setSyncMessage('Mengirim data ke spreadsheet...');
+
+    try {
+      const data = exportAllData();
+      const jsonData = JSON.parse(data);
+
+      const response = await fetch(gasUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'saveAllData',
+          data: jsonData
+        })
+      });
+
+      // Karena mode: 'no-cors', kita tidak bisa baca response
+      // Tapi jika tidak ada error, anggap sukses
+      setSyncStatus('success');
+      setSyncMessage('✅ Data berhasil dikirim ke spreadsheet!');
+      
+      setTimeout(() => {
+        setSyncStatus('idle');
+        setSyncMessage('');
+      }, 3000);
+    } catch (error) {
+      setSyncStatus('error');
+      setSyncMessage('❌ Error: ' + (error as Error).message);
+      
+      setTimeout(() => {
+        setSyncStatus('idle');
+        setSyncMessage('');
+      }, 5000);
+    }
   };
 
   const handleImportData = () => {
@@ -168,6 +223,50 @@ export default function SettingTab() {
           onChange={(e) => setSettings({ ...settings, puskesmasName: e.target.value })}
           className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-purple-200 text-sm text-gray-700"
         />
+      </div>
+
+      {/* Google Apps Script URL */}
+      <div className="glass-card rounded-2xl p-3 space-y-2 holo-border-gradient">
+        <h3 className="text-xs font-semibold text-purple-700 flex items-center gap-1.5">
+          <Upload size={12} /> Google Apps Script URL
+        </h3>
+        <p className="text-[9px] text-gray-500">
+          URL dari Google Apps Script untuk sync data ke spreadsheet
+        </p>
+        <input
+          type="url"
+          value={gasUrl}
+          onChange={(e) => setGasUrl(e.target.value)}
+          placeholder="https://script.google.com/macros/s/..."
+          className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-purple-200 text-xs text-gray-700"
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={handleSaveGasUrl}
+            className="flex-1 py-2 rounded-xl bg-purple-100 border border-purple-200 text-purple-700 text-xs font-semibold"
+          >
+            💾 Simpan URL
+          </button>
+          <button
+            onClick={handleSyncToSpreadsheet}
+            disabled={syncStatus === 'syncing'}
+            className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold disabled:opacity-50"
+          >
+            {syncStatus === 'syncing' ? '⏳ Syncing...' : '🔄 Sync ke Spreadsheet'}
+          </button>
+        </div>
+        {syncMessage && (
+          <div className={`text-[10px] px-2 py-1 rounded-lg ${
+            syncStatus === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
+            syncStatus === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+            'bg-blue-50 text-blue-700 border border-blue-200'
+          }`}>
+            {syncMessage}
+          </div>
+        )}
+        <p className="text-[8px] text-gray-400">
+          💡 Cara setup: Baca file <code className="bg-gray-100 px-1 rounded">script-webapp.js</code> dan <code className="bg-gray-100 px-1 rounded">PANDUAN-SUPER-SIMPLE.md</code>
+        </p>
       </div>
 
       {/* National Holidays per Year */}
