@@ -44,8 +44,13 @@ export default function SettingTab() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
 
   const handleImportData = () => {
@@ -85,8 +90,13 @@ export default function SettingTab() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `clone-${(cloneName || settings.puskesmasName).replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
     setShowCloneModal(false);
     setCloneName('');
   };
