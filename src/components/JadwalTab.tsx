@@ -313,14 +313,14 @@ export default function JadwalTab() {
       const prevEntry = prevEntries.find(e => e.date === prevDateStr);
       
       if (prevEntry) {
-        // Copy data dari bulan sebelumnya
+        // Copy data dari bulan sebelumnya (hanya K3a-K2, tidak termasuk Ket)
         return {
           ...entry,
           k3a: prevEntry.k3a,
           k3b: prevEntry.k3b,
           igd: prevEntry.igd,
           k2: prevEntry.k2,
-          ket: [...prevEntry.ket],
+          // ket tidak ikut disalin
         };
       }
       
