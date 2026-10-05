@@ -197,17 +197,7 @@ export default function JadwalTab() {
     return null;
   };
 
-  const getDoctorDisplayColor = (doctorId: string, date: string): string => {
-    const doctor = doctors.find(d => d.id === doctorId);
-    if (!doctor) return '#333';
-    const status = getDoctorStatus(date, doctorId);
-    if (status) {
-      if (status.status === 'sakit') return '#c62828';
-      if (status.status === 'izin') return '#f57f17';
-      if (status.status === 'tugas') return '#2e7d32';
-    }
-    return doctor.color;
-  };
+
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
@@ -234,10 +224,19 @@ export default function JadwalTab() {
 
   const renderDoctorCell = (date: string, field: string, doctorId?: string) => {
     const doctor = doctorId ? doctors.find(d => d.id === doctorId) : null;
+    const status = doctorId ? getDoctorStatus(date, doctorId) : null;
+    
+    // Determine cell background based on status
+    let cellBgClass = 'bg-white/60';
+    if (status) {
+      if (status.status === 'sakit') cellBgClass = 'bg-red-100/80';
+      else if (status.status === 'izin') cellBgClass = 'bg-amber-100/80';
+      else if (status.status === 'tugas') cellBgClass = 'bg-green-100/80';
+    }
     
     return (
       <td
-        className="schedule-cell border border-purple-200/60 px-0.5 py-1.5 text-center cursor-pointer relative bg-white/60 hover:bg-purple-50/50 transition-colors"
+        className={`schedule-cell border border-purple-200/60 px-0.5 py-1.5 text-center cursor-pointer relative ${cellBgClass} hover:bg-purple-50/50 transition-colors`}
         onClick={() => handleCellTap(date, field)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -252,8 +251,7 @@ export default function JadwalTab() {
             <span
               className="font-bold text-[10px] leading-tight px-1 py-0.5 rounded"
               style={{
-                color: getDoctorDisplayColor(doctorId!, date),
-                backgroundColor: `${getDoctorDisplayColor(doctorId!, date)}15`,
+                color: doctor.color,
               }}
             >
               {doctor.name.replace('dr. ', '')}
