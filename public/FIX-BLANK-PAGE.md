@@ -1,199 +1,111 @@
-# 🔧 FIX BLANK PAGE - GitHub Pages
+# 🚀 FIX BLANK PAGE - GitHub Pages
 
-Blank page terjadi karena **base path** di Vite tidak cocok dengan GitHub Pages.
+## ❌ Masalah yang Ditemukan
 
----
+Setelah cek repository GitHub Anda, ditemukan:
+- ❌ **TIDAK ADA folder `dist/`** di repository
+- ❌ GitHub Pages tidak bisa menampilkan apapun tanpa folder `dist/`
+- ❌ Perlu GitHub Actions untuk auto-build dan deploy
 
-## ✅ SOLUSI 1: Deploy ke Netlify (PALING MUDAH!)
+## ✅ Solusi: GitHub Actions Auto-Deploy
 
-**Rekomendasi:** Deploy ke Netlify, tidak perlu konfigurasi base path!
+Saya sudah buat file workflow yang akan:
+1. ✅ Otomatis build aplikasi setiap kali push
+2. ✅ Otomatis deploy ke GitHub Pages
+3. ✅ Tidak perlu manual upload folder `dist/`
 
-### Langkah 1: Buka Netlify
-1. Buka: https://app.netlify.com
-2. Login dengan GitHub
+## 📋 Langkah-langkah (5 menit)
 
-### Langkah 2: Deploy dari GitHub
-1. Klik **"Add new site"** → **"Import an existing project"**
-2. Pilih **GitHub**
-3. Pilih repository: **jadwalRotasiDokter**
-4. Konfigurasi build:
-   - **Build command:** `npm run build`
-   - **Publish directory:** `dist`
-5. Klik **"Deploy site"**
+### 1. Push Perubahan ke GitHub
 
-### Langkah 3: Dapat URL
-1. Tunggu 1-2 menit
-2. Netlify akan kasih URL seperti:
-   ```
-   https://random-name-12345.netlify.app
-   ```
-3. URL ini langsung bisa dipakai! ✅
+Jalankan command ini di terminal:
 
-### Langkah 4: Update Apps Script
-1. Copy URL Netlify
-2. Buka Apps Script editor
-3. Edit baris ini di script:
-   ```javascript
-   var WEB_APP_URL = 'https://random-name-12345.netlify.app/';
-   ```
-4. Save dan deploy ulang
-
-**SELESAI!** ✅
-
----
-
-## ✅ SOLUSI 2: Fix GitHub Pages (Lebih Ribet)
-
-### Langkah 1: Edit vite.config.ts
-Buka file `vite.config.ts` dan tambahkan `base`:
-
-```typescript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
-  base: '/jadwalRotasiDokter/', // ← TAMBAHKAN INI
-})
-```
-
-### Langkah 2: Commit dan Push
 ```bash
-git add vite.config.ts
-git commit -m "Fix base path for GitHub Pages"
-git push
+git add .
+git commit -m "Add GitHub Actions workflow for auto-deploy"
+git push origin main
 ```
 
-### Langkah 3: Tunggu GitHub Pages Build
-1. GitHub akan otomatis rebuild
-2. Tunggu 1-2 menit
-3. Refresh URL GitHub Pages
+### 2. Tunggu GitHub Actions Build
 
-### Langkah 4: Test
-Buka URL GitHub Pages lagi. Jika masih blank, cek console browser (F12) untuk lihat error.
+1. Buka repository: https://github.com/Mutubabakan/jadwalRotasiDokter
+2. Klik tab **Actions**
+3. Lihat workflow "Deploy to GitHub Pages" sedang berjalan
+4. Tunggu sampai selesai (biasanya 2-3 menit)
+5. Pastikan statusnya **✅ Success** (hijau)
 
----
+### 3. Cek GitHub Pages
 
-## 🎯 REKOMENDASI SAYA
+1. Buka repository
+2. Klik **Settings** → **Pages**
+3. Di bagian **Build and deployment**:
+   - **Source**: Pastikan pilih **GitHub Actions** (bukan "Deploy from a branch")
+4. Tunggu 1-2 menit setelah Actions selesai
+5. Buka URL: https://mutubabakan.github.io/jadwalRotasiDokter/
 
-**Gunakan Netlify!** Karena:
-- ✅ Tidak perlu konfigurasi base path
-- ✅ Deploy otomatis dari GitHub
-- ✅ URL langsung bisa dipakai
-- ✅ Gratis dan cepat
-- ✅ HTTPS otomatis
+### 4. Test Aplikasi
 
-**GitHub Pages** lebih ribet karena perlu edit konfigurasi Vite.
+- ✅ Aplikasi web harusnya muncul
+- ✅ Tidak ada lagi blank page
+- ✅ Semua fitur berfungsi
 
----
+## 🔧 Jika Masih Ada Masalah
 
-## 📊 PERBANDINGAN
+### Masalah: Actions Gagal
+- Cek tab **Actions** untuk lihat error log
+- Pastikan semua file sudah di-push
+- Coba push ulang
 
-| Fitur | Netlify | GitHub Pages |
-|-------|---------|--------------|
-| Setup | ⭐ Sangat Mudah | ⭐⭐ Agak Ribet |
-| Base Path | ✅ Otomatis | ❌ Perlu Edit Config |
-| Deploy Time | 1-2 menit | 1-2 menit |
-| URL | `nama.netlify.app` | `username.github.io/repo` |
-| HTTPS | ✅ Otomatis | ✅ Otomatis |
-| Custom Domain | ✅ Bisa | ✅ Bisa |
+### Masalah: Masih Blank Page
+- Hard refresh browser (Ctrl+Shift+R atau Cmd+Shift+R)
+- Clear cache browser
+- Tunggu 5-10 menit (GitHub Pages butuh waktu untuk update)
 
----
+### Masalah: 404 Not Found
+- Pastikan URL benar: https://mutubabakan.github.io/jadwalRotasiDokter/
+- Pastikan workflow Actions sudah selesai
+- Cek Settings → Pages → Source harus "GitHub Actions"
 
-## 🚀 LANGKAH-DETAILED: NETLIFY
+## 📊 Alur Kerja Baru
 
-### 1. Buka Netlify
 ```
-https://app.netlify.com
-```
-
-### 2. Sign Up / Login
-- Klik **"Sign up"** (jika belum punya akun)
-- Pilih **"GitHub"** untuk login dengan GitHub
-
-### 3. Import Project
-- Klik **"Add new site"**
-- Klik **"Import an existing project"**
-- Klik **"GitHub"**
-- Authorize Netlify untuk akses GitHub
-
-### 4. Pilih Repository
-- Cari dan pilih: **jadwalRotasiDokter**
-- Klik **"Select"**
-
-### 5. Konfigurasi Build
-```
-Branch to deploy: main
-Build command: npm run build
-Publish directory: dist
+Push ke GitHub
+    ↓
+GitHub Actions otomatis build
+    ↓
+GitHub Actions otomatis deploy
+    ↓
+GitHub Pages aktif
+    ↓
+Aplikasi web bisa diakses
 ```
 
-### 6. Deploy
-- Klik **"Deploy site"**
-- Tunggu 1-2 menit
-- Akan muncul URL seperti: `https://fancy-name-123.netlify.app`
+## 🎯 Keuntungan GitHub Actions
 
-### 7. Test URL
-- Buka URL tersebut di browser
-- Aplikasi web harusnya muncul! ✅
+✅ **Otomatis** - Tidak perlu manual build dan upload  
+✅ **Cepat** - Build selesai dalam 2-3 menit  
+✅ **Reliable** - Setiap push otomatis deploy  
+✅ **Free** - GitHub Actions gratis untuk public repo  
 
-### 8. Update Apps Script
-1. Copy URL Netlify
-2. Buka Apps Script editor
-3. Edit baris:
-   ```javascript
-   var WEB_APP_URL = 'https://fancy-name-123.netlify.app/';
-   ```
-4. Save (Ctrl+S)
-5. Deploy → Manage deployments → Edit → New version → Deploy
-6. Buka URL Apps Script → iframe akan load dari Netlify! ✅
+## 📝 Catatan Penting
 
----
+- Setiap kali push ke branch `main`, otomatis akan deploy
+- Tidak perlu lagi manual upload folder `dist/`
+- Folder `dist/` akan otomatis di-generate oleh GitHub Actions
+- URL GitHub Pages: https://mutubabakan.github.io/jadwalRotasiDokter/
 
-## 🐛 TROUBLESHOOTING
+## ✅ Checklist
 
-### Blank Page di Netlify?
-- Cek console browser (F12) untuk error
-- Pastikan build berhasil di Netlify dashboard
-- Cek tab "Deploys" untuk lihat log build
-
-### Assets tidak ter-load?
-- Pastikan `Publish directory` adalah `dist`
-- Pastikan `Build command` adalah `npm run build`
-
-### URL Apps Script masih blank?
-- Pastikan URL Netlify sudah benar di script
-- Pastikan sudah deploy ulang Apps Script
-- Clear cache browser (Ctrl+Shift+R)
+- [ ] Push perubahan ke GitHub
+- [ ] Tunggu GitHub Actions selesai (cek tab Actions)
+- [ ] Pastikan status Actions: Success ✅
+- [ ] Cek Settings → Pages → Source: GitHub Actions
+- [ ] Tunggu 1-2 menit
+- [ ] Buka URL GitHub Pages
+- [ ] Aplikasi web muncul! ✅
 
 ---
 
-## ✅ CHECKLIST
+**Status:** 🔄 Menunggu push dan build
 
-### Netlify (Recommended)
-- [ ] Buka Netlify
-- [ ] Login dengan GitHub
-- [ ] Import repository
-- [ ] Set build command: `npm run build`
-- [ ] Set publish directory: `dist`
-- [ ] Deploy
-- [ ] Copy URL Netlify
-- [ ] Update URL di Apps Script
-- [ ] Deploy ulang Apps Script
-- [ ] Test URL Apps Script → muncul aplikasi! ✅
-
-### GitHub Pages (Alternative)
-- [ ] Edit `vite.config.ts` → tambah `base: '/jadwalRotasiDokter/'`
-- [ ] Commit dan push
-- [ ] Tunggu GitHub Pages rebuild
-- [ ] Test URL
-- [ ] Update URL di Apps Script
-- [ ] Deploy ulang Apps Script
-
----
-
-**Rekomendasi:** Gunakan **Netlify** untuk hasil yang lebih mudah dan cepat! 🚀
+**Next:** Push perubahan dan tunggu GitHub Actions build!

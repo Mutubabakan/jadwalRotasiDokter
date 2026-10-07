@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: "./", // Relative path untuk GitHub Pages
+  base: "/jadwalRotasiDokter/", // Base path untuk GitHub Pages
   server: {
     host: "0.0.0.0",
     port: 3000,
