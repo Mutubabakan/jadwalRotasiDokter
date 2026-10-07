@@ -1,5 +1,10 @@
 import { Doctor, ScheduleData, AppSettings, ScheduleEntry, KetEntry } from './types';
 
+export const CHANGE_EVENT = 'puskesmas-data-changed';
+function notifyChange(): void {
+  try { window.dispatchEvent(new Event(CHANGE_EVENT)); } catch { /* ignore */ }
+}
+
 const STORAGE_KEYS = {
   DOCTORS: 'puskesmas_doctors',
   SCHEDULE: 'puskesmas_schedule',
@@ -70,6 +75,7 @@ export function getDoctors(): Doctor[] {
 
 export function saveDoctors(doctors: Doctor[]): void {
   localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(doctors));
+  notifyChange();
 }
 
 export function getSchedule(): ScheduleData {
@@ -80,6 +86,7 @@ export function getSchedule(): ScheduleData {
 
 export function saveSchedule(schedule: ScheduleData): void {
   localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(schedule));
+  notifyChange();
 }
 
 export function getSettings(): AppSettings {
@@ -91,6 +98,7 @@ export function getSettings(): AppSettings {
 
 export function saveSettings(settings: AppSettings): void {
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  notifyChange();
 }
 
 // Holidays by year
@@ -111,6 +119,7 @@ export function saveHolidaysByYear(year: number, holidays: { date: string; name:
   if (stored) all = JSON.parse(stored);
   all[year] = holidays;
   localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(all));
+  notifyChange();
 }
 
 export function getAllHolidays(): { date: string; name: string }[] {
@@ -177,9 +186,47 @@ export function importAllData(jsonStr: string): boolean {
     if (data.schedule) localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(data.schedule));
     if (data.settings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(data.settings));
     if (data.holidays) localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(data.holidays));
+    notifyChange();
     return true;
   } catch (err) {
     console.error('Import failed:', err);
     return false;
+  }
+}
+
+// ---- Cloud (Google Sheets via Apps Script) helpers ----
+export function hasLocalSchedule(): boolean {
+  return Object.values(getSchedule()).some(entries => Array.isArray(entries) && entries.length > 0);
+}
+
+/** Terapkan data dari cloud ke localStorage TANPA memicu push balik. URL GAS lokal dipertahankan. */
+export function applyCloudData(data: {
+  doctors?: Doctor[];
+  schedule?: ScheduleData;
+  settings?: Partial<AppSettings>;
+  holidays?: Record<string, { date: string; name: string }[]>;
+}): void {
+  if (Array.isArray(data.doctors) && data.doctors.length > 0) {
+    localStorage.setItem(STORAGE_KEYS.DOCTORS, JSON.stringify(data.doctors));
+  }
+  if (data.schedule && typeof data.schedule === 'object') {
+    localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(data.schedule));
+  }
+  if (data.settings && typeof data.settings === 'object') {
+    const local = getSettings();
+    const merged: AppSettings = {
+      puskesmasName:
+        typeof data.settings.puskesmasName === 'string' && data.settings.puskesmasName
+          ? data.settings.puskesmasName
+          : local.puskesmasName,
+      nationalHolidays: Array.isArray(data.settings.nationalHolidays)
+        ? data.settings.nationalHolidays
+        : local.nationalHolidays || [],
+      gasScriptUrl: local.gasScriptUrl || '',
+    };
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
+  }
+  if (data.holidays && typeof data.holidays === 'object' && Object.keys(data.holidays).length > 0) {
+    localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(data.holidays));
   }
 }
