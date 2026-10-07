@@ -6,7 +6,7 @@
  */
 
 // ============================================================================
-// KONFIGURASI - GANTI URL DENGAN URL GITHUB PAGES ANDA
+// KONFIGURASI - URL GITHUB PAGES
 // ============================================================================
 var WEB_APP_URL = 'https://mutubabakan.github.io/jadwalRotasiDokter/';
 
