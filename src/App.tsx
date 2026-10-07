@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TabType } from './utils/types';
 import JadwalTab from './components/JadwalTab';
 import DokterTab from './components/DokterTab';
 import SettingTab from './components/SettingTab';
 import { Calendar, Users, Settings } from 'lucide-react';
+import { initialSync, startAutoPush, onCloudStatus, CloudStatus } from './utils/cloud';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('jadwal');
+  const [ready, setReady] = useState(false);
+  const [cloud, setCloud] = useState<{ status: CloudStatus; message?: string }>({ status: 'idle' });
+
+  useEffect(() => {
+    const offStatus = onCloudStatus((status, message) => setCloud({ status, message }));
+    const offPush = startAutoPush();
+    initialSync().finally(() => setReady(true));
+    return () => {
+      offStatus();
+      offPush();
+    };
+  }, []);
+
+  const cloudLabel =
+    cloud.status === 'loading' ? '☁️ Memuat…' :
+    cloud.status === 'saving' ? '☁️ Menyimpan…' :
+    cloud.status === 'saved' ? '☁️ Tersimpan' :
+    cloud.status === 'error' ? '⚠️ Gagal sinkron' : '';
 
   const tabs = [
     { id: 'jadwal' as TabType, label: 'Jadwal', icon: Calendar },
@@ -26,6 +45,19 @@ function App() {
           <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
         </div>
         <p className="text-[9px] text-center text-gray-400 font-medium tracking-wide">JADWAL ROTASI DOKTER</p>
+        {cloudLabel && (
+          <p
+            className={`text-[9px] text-center font-medium ${cloud.status === 'error' ? 'text-red-500' : 'text-gray-400'}`}
+            title={cloud.message || ''}
+          >
+            {cloudLabel}
+          </p>
+        )}
+        {cloud.status === 'error' && cloud.message && (
+          <p className="text-[9px] text-center text-red-500 px-2">
+            {cloud.message} Data tetap tersimpan di perangkat ini. Data baru belum dikirim ke spreadsheet; cek tab Setting.
+          </p>
+        )}
       </header>
 
       {/* Tab Navigation */}
@@ -52,9 +84,18 @@ function App() {
 
       {/* Tab Content */}
       <main className="flex-1 overflow-hidden">
-        {activeTab === 'jadwal' && <JadwalTab />}
-        {activeTab === 'dokter' && <DokterTab />}
-        {activeTab === 'setting' && <SettingTab />}
+        {!ready ? (
+          <div className="h-full flex flex-col items-center justify-center gap-2 text-purple-500">
+            <div className="w-8 h-8 rounded-full border-[3px] border-purple-200 border-t-purple-500 animate-spin" />
+            <span className="text-xs">Memuat data dari spreadsheet…</span>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'jadwal' && <JadwalTab />}
+            {activeTab === 'dokter' && <DokterTab />}
+            {activeTab === 'setting' && <SettingTab />}
+          </>
+        )}
       </main>
 
       {/* Bottom gradient line */}
