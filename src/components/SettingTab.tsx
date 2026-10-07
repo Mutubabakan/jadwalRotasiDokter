@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AppSettings } from '../utils/types';
 import { getSettings, saveSettings, getHolidaysByYear, saveHolidaysByYear, exportAllData, importAllData } from '../utils/storage';
+import { pushToCloud, pullFromCloud, DEFAULT_GAS_URL } from '../utils/cloud';
 import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
 
 export default function SettingTab() {
@@ -82,47 +83,31 @@ export default function SettingTab() {
   };
 
   const handleSyncToSpreadsheet = async () => {
-    if (!gasUrl.trim()) {
-      alert('URL Google Apps Script belum diisi! Silakan isi di atas terlebih dahulu.');
-      return;
-    }
-
     setSyncStatus('syncing');
     setSyncMessage('Mengirim data ke spreadsheet...');
-
     try {
-      const data = exportAllData();
-      const jsonData = JSON.parse(data);
-
-      const response = await fetch(gasUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'saveAllData',
-          data: jsonData
-        })
-      });
-
-      // Karena mode: 'no-cors', kita tidak bisa baca response
-      // Tapi jika tidak ada error, anggap sukses
+      await pushToCloud();
       setSyncStatus('success');
-      setSyncMessage('✅ Data berhasil dikirim ke spreadsheet!');
-      
-      setTimeout(() => {
-        setSyncStatus('idle');
-        setSyncMessage('');
-      }, 3000);
+      setSyncMessage('✅ Data berhasil disimpan ke spreadsheet!');
+      setTimeout(() => { setSyncStatus('idle'); setSyncMessage(''); }, 3000);
     } catch (error) {
       setSyncStatus('error');
-      setSyncMessage('❌ Error: ' + (error as Error).message);
-      
-      setTimeout(() => {
-        setSyncStatus('idle');
-        setSyncMessage('');
-      }, 5000);
+      setSyncMessage('❌ ' + (error as Error).message);
+    }
+  };
+
+  const handlePullFromSpreadsheet = async () => {
+    if (!confirm('Data di perangkat ini akan diganti dengan data dari spreadsheet. Lanjutkan?')) return;
+    setSyncStatus('syncing');
+    setSyncMessage('Mengambil data dari spreadsheet...');
+    try {
+      await pullFromCloud();
+      setSyncStatus('success');
+      setSyncMessage('✅ Data dimuat. Memuat ulang...');
+      setTimeout(() => window.location.reload(), 600);
+    } catch (error) {
+      setSyncStatus('error');
+      setSyncMessage('❌ ' + (error as Error).message);
     }
   };
 
@@ -242,13 +227,13 @@ export default function SettingTab() {
           <Upload size={12} /> Google Apps Script URL
         </h3>
         <p className="text-[9px] text-gray-500">
-          URL dari Google Apps Script untuk sync data ke spreadsheet
+          Data tersimpan otomatis ke spreadsheet dan dimuat otomatis saat aplikasi dibuka. Kosongkan kolom ini untuk memakai URL bawaan aplikasi.
         </p>
         <input
           type="url"
           value={gasUrl}
           onChange={(e) => setGasUrl(e.target.value)}
-          placeholder="https://script.google.com/macros/s/..."
+          placeholder={DEFAULT_GAS_URL}
           className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-purple-200 text-xs text-gray-700"
         />
         <div className="flex gap-2">
@@ -263,9 +248,16 @@ export default function SettingTab() {
             disabled={syncStatus === 'syncing'}
             className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold disabled:opacity-50"
           >
-            {syncStatus === 'syncing' ? '⏳ Syncing...' : '🔄 Sync ke Spreadsheet'}
+            {syncStatus === 'syncing' ? '⏳ Memproses...' : '⬆️ Simpan ke Spreadsheet'}
           </button>
         </div>
+        <button
+          onClick={handlePullFromSpreadsheet}
+          disabled={syncStatus === 'syncing'}
+          className="w-full py-2 rounded-xl bg-white border border-purple-200 text-purple-700 text-xs font-semibold disabled:opacity-50"
+        >
+          ⬇️ Muat dari Spreadsheet
+        </button>
         {syncMessage && (
           <div className={`text-[10px] px-2 py-1 rounded-lg ${
             syncStatus === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
@@ -275,9 +267,6 @@ export default function SettingTab() {
             {syncMessage}
           </div>
         )}
-        <p className="text-[8px] text-gray-400">
-          💡 Cara setup: Baca file <code className="bg-gray-100 px-1 rounded">script-webapp.js</code> dan <code className="bg-gray-100 px-1 rounded">PANDUAN-SUPER-SIMPLE.md</code>
-        </p>
       </div>
 
       {/* National Holidays per Year */}
