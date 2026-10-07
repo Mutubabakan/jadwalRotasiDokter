@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { saveAs } from 'file-saver';
 import { AppSettings } from '../utils/types';
 import { getSettings, saveSettings, getHolidaysByYear, saveHolidaysByYear, exportAllData, importAllData } from '../utils/storage';
 import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
@@ -60,8 +59,14 @@ export default function SettingTab() {
 
   const handleDownloadExport = () => {
     const blob = new Blob([exportData], { type: 'application/json;charset=utf-8' });
-    const filename = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
-    saveAs(blob, filename);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jadwal-rotasi-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleOpenInNewTab = () => {
@@ -154,8 +159,14 @@ export default function SettingTab() {
     cloneData.cloneDate = new Date().toISOString();
     
     const blob = new Blob([JSON.stringify(cloneData, null, 2)], { type: 'application/json;charset=utf-8' });
-    const filename = `clone-${(cloneName || settings.puskesmasName).replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
-    saveAs(blob, filename);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clone-${(cloneName || settings.puskesmasName).replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     
     setShowCloneModal(false);
     setCloneName('');
