@@ -1,4 +1,4 @@
-import { Doctor, ScheduleData, AppSettings, ScheduleEntry, KetEntry } from './types';
+import { Doctor, ScheduleData, AppSettings, ScheduleEntry, KetEntry, PrintProfile, KopImage } from './types';
 
 export const CHANGE_EVENT = 'puskesmas-data-changed';
 function notifyChange(): void {
@@ -224,9 +224,54 @@ export function applyCloudData(data: {
         : local.nationalHolidays || [],
       gasScriptUrl: local.gasScriptUrl || '',
     };
+    const cloudCetak = (data.settings as { cetak?: unknown }).cetak;
+    if (cloudCetak && typeof cloudCetak === 'object') {
+      merged.cetak = { ...defaultPrintProfile, ...(local.cetak || {}), ...(cloudCetak as Partial<PrintProfile>) };
+    } else if (local.cetak) {
+      merged.cetak = local.cetak;
+    }
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
   }
   if (data.holidays && typeof data.holidays === 'object' && Object.keys(data.holidays).length > 0) {
     localStorage.setItem(STORAGE_KEYS.HOLIDAYS, JSON.stringify(data.holidays));
   }
+}
+
+// ---- Profil cetak jadwal (nama kepala, NIP, lokasi, kop) ----
+export const defaultPrintProfile: PrintProfile = {
+  lokasi: 'Mataram',
+  namaKepala: '',
+  nipKepala: '',
+  kopMode: 'tanpa',
+  kopTeks: '',
+};
+
+export function getPrintProfile(): PrintProfile {
+  return { ...defaultPrintProfile, ...(getSettings().cetak || {}) };
+}
+
+export function savePrintProfile(profile: PrintProfile): void {
+  saveSettings({ ...getSettings(), cetak: profile });
+}
+
+// Gambar kop: hanya lokal (terlalu besar untuk sel spreadsheet)
+const KOP_IMAGE_KEY = 'puskesmas_kop_image';
+
+export function getKopImage(): KopImage | null {
+  try {
+    const raw = localStorage.getItem(KOP_IMAGE_KEY);
+    if (!raw) return null;
+    const img = JSON.parse(raw);
+    return img && typeof img.dataUrl === 'string' ? img : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveKopImage(img: KopImage): void {
+  localStorage.setItem(KOP_IMAGE_KEY, JSON.stringify(img));
+}
+
+export function clearKopImage(): void {
+  localStorage.removeItem(KOP_IMAGE_KEY);
 }

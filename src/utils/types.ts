@@ -26,10 +26,26 @@ export interface ScheduleData {
   [yearMonth: string]: ScheduleEntry[]; // key: "YYYY-MM"
 }
 
+export interface PrintProfile {
+  lokasi: string; // contoh: Mataram
+  namaKepala: string;
+  nipKepala: string;
+  kopMode: 'gambar' | 'teks' | 'tanpa';
+  kopTeks: string; // satu baris per baris kop
+}
+
+/** Gambar kop disimpan HANYA di perangkat ini (tidak ikut sync ke spreadsheet). */
+export interface KopImage {
+  dataUrl: string;
+  width: number;
+  height: number;
+}
+
 export interface AppSettings {
   puskesmasName: string;
   nationalHolidays: NationalHoliday[];
   gasScriptUrl?: string;
+  cetak?: PrintProfile;
 }
 
 export interface NationalHoliday {
