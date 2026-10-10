@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { AppSettings } from '../utils/types';
 import { getSettings, saveSettings, getHolidaysByYear, saveHolidaysByYear, exportAllData, importAllData } from '../utils/storage';
 import { pushToCloud, pullFromCloud, DEFAULT_GAS_URL } from '../utils/cloud';
-import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check } from 'lucide-react';
+import PrintScheduleModal from './PrintScheduleModal';
+import { Trash2, Plus, X, RotateCcw, Info, Download, Upload, Calendar, Copy, Check, Printer } from 'lucide-react';
 
 export default function SettingTab() {
   const [settings, setSettings] = useState<AppSettings>(getSettings());
@@ -14,6 +15,7 @@ export default function SettingTab() {
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
   const [exportData, setExportData] = useState('');
   const [exportCopied, setExportCopied] = useState(false);
   const [importText, setImportText] = useState('');
@@ -336,6 +338,12 @@ export default function SettingTab() {
         </p>
         <div className="space-y-2">
           <button
+            onClick={() => setShowPrintModal(true)}
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <Printer size={12} /> Cetak Jadwal (PDF / Word)
+          </button>
+          <button
             onClick={handleExportData}
             className="w-full py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1.5"
           >
@@ -425,6 +433,14 @@ export default function SettingTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Print Schedule Modal */}
+      {showPrintModal && (
+        <PrintScheduleModal
+          onClose={() => setShowPrintModal(false)}
+          onProfileSaved={(cetak) => setSettings(prev => ({ ...prev, cetak }))}
+        />
       )}
 
       {/* Clone Modal */}
